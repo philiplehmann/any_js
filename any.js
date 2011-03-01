@@ -15,7 +15,7 @@
   
   // Current version
   $a.VERSION = '0.0.1';
-  
+
   $a.ready = function(loadedCallback) {
 		document.addEventListener("DOMContentLoaded", loadedCallback, false);
   };
@@ -132,32 +132,29 @@
 
   // Remove class from node.
 	$a.css.remove = function(node, className) {
-		if(!node.classList) {
-			node.classList = new this.ClassList(node);
-		}
+		if( ! node.classList) node.classList = new this.ClassList(node);
 		return node.classList.remove(className);
 	};
 
   // Tests wheter node has class or not.
 	$a.css.has = function(node, className) {
-		if(!node.classList) {
-			node.classList = new this.ClassList(node);
-		}
+		if ( ! node.classList) node.classList = new this.ClassList(node);
 		return node.classList.contains(className);
 	};
 
   // Toggle class.
 	$a.css.toggle = function(node, className) {
-		if(!node.classList) {
-			node.classList = new this.ClassList(node);
-		}
+		if ( ! node.classList) node.classList = new this.ClassList(node);
 		return node.classList.toggle(className);
 	};
 
   // Private: ClassList implementation for browser
   // which have no support for it.
-	var ClassList = function(node) {
+	var ClassList = $a.css.ClassList = function(node) {
+    console.log("this: %o", this);
+	  
 		this.node = node;
+		if ( ! this.node.className) this.node.className = '';
 		this.list = node.className.split(' ');
 		this.add = function(className) {
 			if(!this.contains(className)) {
