@@ -1,83 +1,94 @@
-window.$a = {
-	ready: function(loadedCallback) {
+(function() {
+  
+  // Access root object, `window` in the browser or `global` on a server
+  var root = this;
+  
+  // Points to `window.document` or `root` when on server object.
+  var defaultNode = root.document != undefined ? root.document : root;
+  
+  // Internal save object, so we can asume `$a` is available in
+  // our context.
+  var $a = {};
+  
+  // Export our methods as `$a` in `root`.
+  root.$a = $a;
+  
+  // Current version
+  $a.VERSION = '0.0.1';
+  
+  $a.ready = function(loadedCallback) {
 		document.addEventListener("DOMContentLoaded", loadedCallback, false);
-	  return this;
-	},
-	
-	css: function(node, object) {
+  };
+
+  $a.css = function(node, object) {
 		for(var key in object) {
 			node.style[key] = object[key];
 		}
-	},
-	
-	query: function(node, query) {
-		node = query ? node : document;
+	};
+
+  // Find first matching element using a CSS expression.
+  $a.first = function(node, query) {
+		node = query ? node : defaultNode;
 		query = query || node;
-		
+
 		return node.querySelector(query);
-	},
-	
-	queryAll: function(node, query) {
-		node = query ? node : document;
+  };
+  
+  // Find all matching elements using a CSS expression.
+  $a.all = function(node, query) {
+		node = query ? node : defaultNode;
 		query = query || node;
-		
+
 		return node.querySelectorAll(query);
-	},
-	
-	id: function(node, id) {
-		node = id ? node : document;
+  };
+  
+  
+  // Basically a shortcut for `document.getElementById`.
+  $a.id = function(node, id) {
+		node = id ? node : defaultNode;
 		id = id || node;
-		
+
 		return node.getElementById(id);
-	},
-	
-	isFunc: function(func) {
-		
-	},
-	
-	isObj: function(obj) {
-		
-	},
-	
-	isArr: function(arr) {
-		
-	},
-	
-	isStr: function(str) {
-		
-	},
-	
-	isInt: function(int) {
-		
-	},
-	
-	extend: function(obj1, obj2) {
-		
-	},
-	
-	bind: function(node, event, callback, useCapture) {
+  };
+  
+  // Returns `true` if supplied object is a function.
+  $a.isFunc = function(func) { 
+    return (typeof func === 'function')
+	};
+
+  // TODO
+  $a.isObj = function(obj) { };
+
+  // TODO
+  $a.isArr = function(arr) { };
+
+  // TODO, brauchts isStr ueberhaupt???
+  $a.isStr = function(str) { };
+
+  // TODO: brauchts das ueberhaupt???
+  $a.isInt = function(int) { };
+
+  $a.extend = function(obj1, obj2) { };
+
+  $a.bind = function(node, event, callback, useCapture) {
 		node.addEventListener(event, callback, useCapture)
-	},
-	
-	unbind: function(node, event, callback, useCapture) {
-		
-	},
-	
-	browserdetection: function() {
-		
-	},
-	
-	data: function(node, key, value) {
-		if(value != undefined) {
+  };
+  
+  // TODO
+  $a.unbind = function(node, event, callback, useCapture) { };
+
+  // Read and write HTML5 data attributes.
+  $a.data = function(node, key, value) {
+    if(value != undefined) {
 			node.setAttribute('data-' + key, value);
 		} else {
 			return node.getAttribute('data-' + key);
 		}
-	}, 
-	
-	animate: function(node, animationObj, cssObj, cleanup) {
+  };
+  
+	$a.animate = function(node, animationObj, cssObj, cleanup) {
 		cleanup = cleanup == undefined ? true : cleanup;
-		
+
 		if(animationObj.property != undefined) {
 			node.style.webkitTransitionProperty = animationObj.property;
 			node.style.mozTransitionProperty = animationObj.property;
@@ -95,51 +106,57 @@ window.$a = {
 			node.style.mozTransitionDelay = animationObj.delay;
 		}
 		if(cleanup) {
-			this.bind(node, 'webkitTransitionEnd', this.animationCleanup);
-			this.bind(node, 'mozTransitionEnd', this.animationCleanup);
+			this.bind(node, 'webkitTransitionEnd', this._animationCleanup);
+			this.bind(node, 'mozTransitionEnd', this._animationCleanup);
 		}
 		this.css(node, cssObj);
-	},
-	
-	animationCleanup: function(event) {
+	};
+
+  // Private: reset animation properties after transisition ended.
+	$a._animationCleanup = function(event) {
 		$a.animate(event.currentTarget, {property: null, duration: null, timingFunction: null, delay: null}, {}, false);
-	},
-	
-	elementsByHTML: function (html) {
+	};
+
+  // Build nodes from HTML snippet.
+  $a.html = function(html) {
 		var tmp = document.createElement('div');
 		tmp.innerHTML = html;
 		return tmp.childNodes;
-	},
-	
-	addClass: function(node, className) {
-		if(!node.classList) {
-			node.classList = new this.ClassList(node);
-		}
+  };
+  
+  // Add class to node.
+  $a.css.add = function(node, className) {
+		if(!node.classList) node.classList = new this.ClassList(node);
 		return node.classList.add(className);
-	},
-	
-	removeClass: function(node, className) {
+	};
+
+  // Remove class from node.
+	$a.css.remove = function(node, className) {
 		if(!node.classList) {
 			node.classList = new this.ClassList(node);
 		}
 		return node.classList.remove(className);
-	},
-	
-	hasClass: function(node, className) {
+	};
+
+  // Tests wheter node has class or not.
+	$a.css.has = function(node, className) {
 		if(!node.classList) {
 			node.classList = new this.ClassList(node);
 		}
 		return node.classList.contains(className);
-	},
-	
-	toggleClass: function(node, className) {
+	};
+
+  // Toggle class.
+	$a.css.toggle = function(node, className) {
 		if(!node.classList) {
 			node.classList = new this.ClassList(node);
 		}
 		return node.classList.toggle(className);
-	},
-	
-	ClassList: function(node) {
+	};
+
+  // Private: ClassList implementation for browser
+  // which have no support for it.
+	var ClassList = function(node) {
 		this.node = node;
 		this.list = node.className.split(' ');
 		this.add = function(className) {
@@ -176,27 +193,6 @@ window.$a = {
 			this.list = arr;
 		};
 		this.clean();
-	}
-};
-Array.prototype.map = function(func) {
-	if(!$a.isFunc(func)) return;
-
-	var arr = [];
-	for(var i=0; i < this.length; i++) {
-		arr.push(func(this[i], i));
-	}
-	return arr;
-}
-
-/**
- * func
- */
-Array.prototype.each = function(func) {
-	if(!$a.isFunc(func)) return;
-	
-	for(var i=0; i < this.length; i++) {
-		if(func(this[i], i) === false) {
-			break;
-		}
-	}
-}
+	};
+  
+})();
