@@ -150,9 +150,7 @@
 
   // Private: ClassList implementation for browser
   // which have no support for it.
-	var ClassList = $a.css.ClassList = function(node) {
-    console.log("this: %o", this);
-	  
+	var ClassList = $a.css.ClassList = function(node) {	  
 		this.node = node;
 		if ( ! this.node.className) this.node.className = '';
 		this.list = node.className.split(' ');
