@@ -8,6 +8,11 @@
 
 (function() {
 
+  // ## Common variables
+  //
+  // These are used to simplify working in the anonymous
+  // function and provide access to stuff like `window`.
+
   // Access root object, `window` in the browser or `global` on a server
   var root = this;
 
@@ -18,58 +23,27 @@
   // our context.
   var $a = {};
 
-  // Export our methods as `$a` in `root`.
+  // Export our methods as `$a` in `root` (i.e. `window`).
   root.$a = $a;
 
   // Current version
   $a.VERSION = '0.0.1';
 
-  $a.ready = function(loadedCallback) {
-    document.addEventListener("DOMContentLoaded", loadedCallback, false);
-  };
-
-  $a.css = function(node, object) {
-    for(var key in object) {
-      node.style[key] = object[key];
-    }
-  };
-
-  // Find first matching element using a CSS expression.
-  $a.first = function(node, query) {
-    node = query ? node : defaultNode;
-    query = query || node;
-
-    return node.querySelector(query);
-  };
-
-  // Find all matching elements using a CSS expression.
-  $a.all = function(node, query) {
-    node = query ? node : defaultNode;
-    query = query || node;
-
-    return node.querySelectorAll(query);
-  };
-
-
-  // Basically a shortcut for `document.getElementById`.
-  $a.id = function(node, id) {
-    node = id ? node : defaultNode;
-    id = id || node;
-
-    return node.getElementById(id);
-  };
+  // ## Utility methods
+  //
+  // 
 
   // Returns `true` if supplied object is a function.
   $a.isFunc = function(func) {
     return (typeof func === 'function')
   };
 
-  // Returns `true` if supplied object is an object
-  $a.isObj = function(obj) {
+  // Returns `true` if supplied object is an object.
+  $a.isObj = function(obj) {
     return (!Array.isArray(obj) && typeof obj === 'object');
   };
   
-  // Returns `true` if supplied object is an array
+  // Returns `true` if supplied object is an array.
   $a.isArr = function(arr) {
     return Array.isArray(arr);
   };
@@ -95,12 +69,73 @@
     return obj1;
   };
 
+  // ### $a.json("str"), $a.json(object)
+  // Convert an object to a JSON string, or parse a string
+  // as JSON.
+  //
+  //     $a.json("{'a':12,'b':'test'}") // => { a: 12, b: 'test' }
+  //     $a.json({ a: 12, b: 'test' })  // => '{"a":12,"b":"test"}'
+  //
+  $a.json = function(obj_or_str) {
+    if (this.isStr(obj_or_str)) return JSON.parse(obj_or_str);
+    return JSON.stringify(obj_or_str);
+  };
+
+  // ## DOM event handling
+  //
+
+  // Add event listener for event to node.
   $a.bind = function(node, event, callback, useCapture) {
     node.addEventListener(event, callback, useCapture);
   };
-  
+
+  // Remove event listener from node.
   $a.unbind = function(node, event, callback, useCapture) {
     node.removeEventListener(event, callback, useCapture);
+  };
+  
+  // Execute callback when `DOMContentLoaded` event is fired.
+  $a.ready = function(loadedCallback) {
+    $a.bind(defaultNode, 'DOMContentLoaded', loadedCallback, false);
+  };
+
+  // ## DOM traversal & manipulation
+
+  // ### $a.id("id"), $a.id(node, "id")
+  // Shortcut for `document.getElementById`.
+  //
+  //     $a.id('someId');       // searches in window.document
+  //     $a.id(node, 'someId'); // searches in node
+  //
+  $a.id = function(node, id) {
+    node = id ? node : defaultNode;
+    id = id || node;
+
+    return node.getElementById(id);
+  };  
+  
+  // ### $a.first("css"), $a.first(node, "css")
+  // Find first matching element using a CSS expression.
+  $a.first = function(node, query) {
+    node = query ? node : defaultNode;
+    query = query || node;
+
+    return node.querySelector(query);
+  };
+
+  // Find all matching elements using a CSS expression.
+  $a.all = function(node, query) {
+    node = query ? node : defaultNode;
+    query = query || node;
+
+    return node.querySelectorAll(query);
+  };
+
+  // Build nodes from HTML snippet.
+  $a.html = function(html) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.childNodes;
   };
 
   // Read and write HTML5 data attributes.
@@ -112,48 +147,43 @@
     }
   };
 
-  /**
-   * params = {
-   *    url
-   *    data
-   *    onsuccess optional
-   *    onerror optional
-   *    method GET|POST default GET
-   * }
-   */
-  $a.ajax = function(params) {
-    if(params.method == undefined) params.method = 'GET';
-
-    if(params.method == 'GET') {
-      params.url = params.url + '?' + params.data;
-      params.data = null;
+  // ## CSS and animations
+  
+  // Set all supplied CSS properties on `node`, basically a shortcut for
+  // multiple `node.style.xyz = ...` calls.
+  //
+  //     $a.css(node, { marginTop: '12px', opacity: 0.5 });
+  //
+  $a.css = function(node, object) {
+    for(var key in object) {
+      node.style[key] = object[key];
     }
-
-    var httpRequest = new XMLHttpRequest();
-    httpRequest.onreadystatechange = function() { 
-      if (httpRequest.readyState == 4) {
-        if (httpRequest.status == 200) {
-          if($a.isFunc(onsuccess)) {
-            onsuccess(httpRequest.responseText);
-          }
-        } else {
-          if($a.isFunc(onerror)) {
-            onerror();
-          }
-        }
-      }
-    };
-    httpRequest.open(params.method, params.url, true);
-    httpRequest.send(params.data);
   };
 
-  // Convert an object to a JSON string, or parse a string
-  // as JSON.
-  $a.json = function(obj_or_str) {
-    if (this.isStr(obj_or_str)) return JSON.parse(obj_or_str);
-    return JSON.stringify(obj_or_str);
+  // Add class to node.
+  $a.addClass = function(node, className) {
+    if(!node.classList) node.classList = new this._ClassList(node);
+    return node.classList.add(className);
   };
-    
+
+  // Remove class from node.
+  $a.removeClass = function(node, className) {
+    if( ! node.classList) node.classList = new this._ClassList(node);
+    return node.classList.remove(className);
+  };
+
+  // Tests wheter node has class or not.
+  $a.hasClass = function(node, className) {
+    if ( ! node.classList) node.classList = new this._ClassList(node);
+    return node.classList.contains(className);
+  };
+
+  // Toggle class.
+  $a.toggleClass = function(node, className) {
+    if ( ! node.classList) node.classList = new this._ClassList(node);
+    return node.classList.toggle(className);
+  };
+
   /**
    * animate node with css transition
    *
@@ -200,37 +230,6 @@
     $a.animate(event.currentTarget, {property: null, duration: null, timingFunction: null, delay: null}, {}, false);
   };
 
-  // Build nodes from HTML snippet.
-  $a.html = function(html) {
-    var tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    return tmp.childNodes;
-  };
-
-  // Add class to node.
-  $a.addClass = function(node, className) {
-    if(!node.classList) node.classList = new this._ClassList(node);
-    return node.classList.add(className);
-  };
-
-  // Remove class from node.
-  $a.removeClass = function(node, className) {
-    if( ! node.classList) node.classList = new this._ClassList(node);
-    return node.classList.remove(className);
-  };
-
-  // Tests wheter node has class or not.
-  $a.hasClass = function(node, className) {
-    if ( ! node.classList) node.classList = new this._ClassList(node);
-    return node.classList.contains(className);
-  };
-
-  // Toggle class.
-  $a.toggleClass = function(node, className) {
-    if ( ! node.classList) node.classList = new this._ClassList(node);
-    return node.classList.toggle(className);
-  };
-
   // Private: ClassList implementation for browser
   // which have no support for it.
   $a._ClassList = function(node) {    
@@ -272,4 +271,41 @@
     };
     this.clean();
   };  
+
+  // ## AJAX
+
+  /**
+   * params = {
+   *    url
+   *    data
+   *    onsuccess optional
+   *    onerror optional
+   *    method GET|POST default GET
+   * }
+   */
+  $a.ajax = function(params) {
+    if(params.method == undefined) params.method = 'GET';
+
+    if(params.method == 'GET') {
+      params.url = params.url + '?' + params.data;
+      params.data = null;
+    }
+
+    var httpRequest = new XMLHttpRequest();
+    httpRequest.onreadystatechange = function() { 
+      if (httpRequest.readyState == 4) {
+        if (httpRequest.status == 200) {
+          if($a.isFunc(onsuccess)) {
+            onsuccess(httpRequest.responseText);
+          }
+        } else {
+          if($a.isFunc(onerror)) {
+            onerror();
+          }
+        }
+      }
+    };
+    httpRequest.open(params.method, params.url, true);
+    httpRequest.send(params.data);
+  };
 })();
