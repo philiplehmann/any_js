@@ -1,3 +1,11 @@
+//     any.js 0.0.1
+//     (c) 2011 Philip Lehmann, Lukas Westermann, at-point ag
+//     any.js is freely distributable under the MIT license.
+//     Portions of any.js are inspired or borrowed from Underscore.js,
+//     Prototype and jQuery.
+//     For all details and documentation:
+//     TODO: gh-pages
+
 (function() {
   
   // Access root object, `window` in the browser or `global` on a server
