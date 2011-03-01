@@ -56,26 +56,42 @@
     return (typeof func === 'function')
 	};
 
-  // TODO
-  $a.isObj = function(obj) { };
-
-  // TODO
-  $a.isArr = function(arr) { };
-
-  // TODO, brauchts isStr ueberhaupt???
-  $a.isStr = function(str) { };
-
-  // TODO: brauchts das ueberhaupt???
-  $a.isInt = function(int) { };
-
-  $a.extend = function(obj1, obj2) { };
+	// Returns `true` if supplied object is an object
+  $a.isObj = function(obj) {
+		if(!Array.isArray(obj) && typeof obj === 'object') {
+			return true;
+		}
+		return false;
+	};
+	
+	// Returns `true` if supplied object is an array
+	$a.isArr = function(arr) {
+		return Array.isArray(arr);
+	};
+	
+	// Extend obj1 with obj2 recursive
+  $a.extend = function(obj1, obj2) {
+		for (var p in obj2) {
+			try {
+	      if ($a.isObj(obj2[p])) {
+	        obj1[p] = $a.extend(obj1[p], obj2[p]);
+	      } else {
+	        obj1[p] = obj2[p];
+	      }
+	    } catch(e) {
+	      obj1[p] = obj2[p];
+	    }
+	  }
+	  return obj1;
+	};
 
   $a.bind = function(node, event, callback, useCapture) {
-		node.addEventListener(event, callback, useCapture)
+		node.addEventListener(event, callback, useCapture);
   };
   
-  // TODO
-  $a.unbind = function(node, event, callback, useCapture) { };
+  $a.unbind = function(node, event, callback, useCapture) {
+		node.removeEventListener(event, callback, useCapture);
+	};
 
   // Read and write HTML5 data attributes.
   $a.data = function(node, key, value) {
@@ -85,8 +101,62 @@
 			return node.getAttribute('data-' + key);
 		}
   };
+
+	/**
+	 * params = {
+	 * 		url
+	 *    data
+	 *    onsuccess optional
+	 *    onerror optional
+	 *    method GET|POST default GET
+	 * }
+	 */
+	$a.ajax = function(params) {
+		if(params.method == undefined) params.method = 'GET';
+
+		if(params.method == 'GET') {
+			params.url = params.url + '?' + params.data;
+			params.data = null;
+		}
+
+		var httpRequest = new XMLHttpRequest();
+		httpRequest.onreadystatechange = function() { 
+			if (httpRequest.readyState == 4) {
+				if (httpRequest.status == 200) {
+					if($a.isFunc(onsuccess)) {
+						onsuccess(httpRequest.responseText);
+					}
+				} else {
+					if($a.isFunc(onerror)) {
+						onerror();
+					}
+				}
+			}
+		};
+		httpRequest.open(params.method, params.url, true);
+		httpRequest.send(params.data);
+	};
+	
+	$a.json_encode = function(obj) {
+		return JSON.stringify(obj);
+	};
+	
+	$a.json_decode = function(string) {
+		return JSON.parse(string);
+	};
   
-	$a.animate = function(node, animationObj, cssObj, cleanup) {
+	/**
+	 * animate node with css transition
+	 *
+	 * node - html element
+	 * animationObj - {property: 'all', duration: '1s', timingFunction: 'ease-in-out', delay: '0s'}
+	 * cssObj - {with: 200px.....}
+	 * cleanup - removes transition on transition end (true|false)
+	 * callback - called on the transition end
+	 *
+	 * moz doc http://developer.mozilla.org/en/CSS/CSS_transitions
+	 */
+	$a.animate = function(node, animationObj, cssObj, cleanup, callback) {
 		cleanup = cleanup == undefined ? true : cleanup;
 
 		if(animationObj.property != undefined) {
@@ -109,6 +179,10 @@
 			this.bind(node, 'webkitTransitionEnd', this._animationCleanup);
 			this.bind(node, 'mozTransitionEnd', this._animationCleanup);
 		}
+		if($a.isFunc(callback)) {
+			this.bind(node, 'webkitTransitionEnd', callback);
+			this.bind(node, 'mozTransitionEnd', callback);
+		}
 		this.css(node, cssObj);
 	};
 
@@ -125,32 +199,32 @@
   };
   
   // Add class to node.
-  $a.css.add = function(node, className) {
-		if(!node.classList) node.classList = new this.ClassList(node);
+  $a.addClass = function(node, className) {
+		if(!node.classList) node.classList = new this._ClassList(node);
 		return node.classList.add(className);
 	};
 
   // Remove class from node.
-	$a.css.remove = function(node, className) {
-		if( ! node.classList) node.classList = new this.ClassList(node);
+	$a.removeClass = function(node, className) {
+		if( ! node.classList) node.classList = new this._ClassList(node);
 		return node.classList.remove(className);
 	};
 
   // Tests wheter node has class or not.
-	$a.css.has = function(node, className) {
-		if ( ! node.classList) node.classList = new this.ClassList(node);
+	$a.hasClass = function(node, className) {
+		if ( ! node.classList) node.classList = new this._ClassList(node);
 		return node.classList.contains(className);
 	};
 
   // Toggle class.
-	$a.css.toggle = function(node, className) {
-		if ( ! node.classList) node.classList = new this.ClassList(node);
+	$a.toggleClass = function(node, className) {
+		if ( ! node.classList) node.classList = new this._ClassList(node);
 		return node.classList.toggle(className);
 	};
 
   // Private: ClassList implementation for browser
   // which have no support for it.
-	var ClassList = $a.css.ClassList = function(node) {	  
+	$a._ClassList = function(node) {	  
 		this.node = node;
 		if ( ! this.node.className) this.node.className = '';
 		this.list = node.className.split(' ');
