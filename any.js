@@ -1,4 +1,4 @@
-//     any.js 0.0.1
+//     any.js @VERSION@
 //     (c) 2011 Philip Lehmann, Lukas Westermann, at-point ag
 //     any.js is freely distributable under the MIT license.
 //     Portions of any.js are inspired or borrowed from Underscore.js,
