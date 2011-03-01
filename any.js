@@ -66,15 +66,17 @@
 
   // Returns `true` if supplied object is an object
   $a.isObj = function(obj) {
-    if(!Array.isArray(obj) && typeof obj === 'object') {
-      return true;
-    }
-    return false;
+    return (!Array.isArray(obj) && typeof obj === 'object');
   };
   
   // Returns `true` if supplied object is an array
   $a.isArr = function(arr) {
     return Array.isArray(arr);
+  };
+  
+  // Returns `true` if supplied object is a string.
+  $a.isStr = function(str) {
+    return (typeof str === 'string');
   };
   
   // Extend obj1 with obj2 recursive
@@ -144,15 +146,14 @@
     httpRequest.open(params.method, params.url, true);
     httpRequest.send(params.data);
   };
-  
-  $a.json_encode = function(obj) {
-    return JSON.stringify(obj);
+
+  // Convert an object to a JSON string, or parse a string
+  // as JSON.
+  $a.json = function(obj_or_str) {
+    if (this.isStr(obj_or_str)) return JSON.parse(obj_or_str);
+    return JSON.stringify(obj_or_str);
   };
-  
-  $a.json_decode = function(string) {
-    return JSON.parse(string);
-  };
-  
+    
   /**
    * animate node with css transition
    *
@@ -193,39 +194,6 @@
     }
     this.css(node, cssObj);
   };
-=======
-      node.setAttribute('data-' + key, value);
-    } else {
-      return node.getAttribute('data-' + key);
-    }
-  };
-
-  $a.animate = function(node, animationObj, cssObj, cleanup) {
-    cleanup = cleanup == undefined ? true : cleanup;
-
-    if(animationObj.property != undefined) {
-      node.style.webkitTransitionProperty = animationObj.property;
-      node.style.mozTransitionProperty = animationObj.property;
-    }
-    if(animationObj.duration != undefined) {
-      node.style.webkitTransitionDuration = animationObj.duration;
-      node.style.mozTransitionDuration = animationObj.duration;
-    }
-    if(animationObj.timingFunction != undefined) {
-      node.style.webkitTransitionTimingFunction = animationObj.timingFunction;
-      node.style.mozTransitionTimingFunction = animationObj.timingFunction;
-    }
-    if(animationObj.delay != undefined) {
-      node.style.webkitTransitionDelay = animationObj.delay;
-      node.style.mozTransitionDelay = animationObj.delay;
-    }
-    if(cleanup) {
-      this.bind(node, 'webkitTransitionEnd', this._animationCleanup);
-      this.bind(node, 'mozTransitionEnd', this._animationCleanup);
-    }
-    this.css(node, cssObj);
-  };
->>>>>>> replace tabs with spaces
 
   // Private: reset animation properties after transisition ended.
   $a._animationCleanup = function(event) {
@@ -240,7 +208,6 @@
   };
 
   // Add class to node.
-<<<<<<< HEAD
   $a.addClass = function(node, className) {
     if(!node.classList) node.classList = new this._ClassList(node);
     return node.classList.add(className);
@@ -304,74 +271,5 @@
       this.list = arr;
     };
     this.clean();
-  };
-  
+  };  
 })();
-=======
-  $a.css.add = function(node, className) {
-    if(!node.classList) node.classList = new this.ClassList(node);
-    return node.classList.add(className);
-  };
-
-  // Remove class from node.
-  $a.css.remove = function(node, className) {
-    if( ! node.classList) node.classList = new this.ClassList(node);
-    return node.classList.remove(className);
-  };
-
-  // Tests wheter node has class or not.
-  $a.css.has = function(node, className) {
-    if ( ! node.classList) node.classList = new this.ClassList(node);
-    return node.classList.contains(className);
-  };
-
-  // Toggle class.
-  $a.css.toggle = function(node, className) {
-    if ( ! node.classList) node.classList = new this.ClassList(node);
-    return node.classList.toggle(className);
-  };
-
-  // Private: ClassList implementation for browser
-  // which have no support for it.
-  var ClassList = $a.css.ClassList = function(node) {
-    this.node = node;
-    if ( ! this.node.className) this.node.className = '';
-    this.list = node.className.split(' ');
-    this.add = function(className) {
-      if(!this.contains(className)) {
-        this.list.push(className);
-        this.clean();
-        this.node.className = this.list.join(' ');
-      }
-    };
-    this.remove = function(className) {
-      if(this.contains(className)) {
-        this.list.splice(this.list.indexOf(className), 1);
-        this.clean();
-        this.node.className = this.list.join(' ');
-      }
-    };
-    this.contains = function(className) {
-      return (this.list.indexOf(className) !== -1) ? true : false;
-    };
-    this.toggle = function(className) {
-      if(this.contains(className)) {
-        this.remove(className);
-      } else {
-        this.add(className);
-      }
-    };
-    this.clean = function() {
-      var arr = [];
-      for(var i=0; i < this.list.length; i++) {
-        if(this.list[i].length > 0) {
-          arr.push(this.list[i]);
-        }
-      }
-      this.list = arr;
-    };
-    this.clean();
-  };
-
-})();
->>>>>>> replace tabs with spaces
