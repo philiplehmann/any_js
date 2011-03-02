@@ -24,7 +24,7 @@
   var $a = {};
 
   // Export our methods as `$a` in `root` (i.e. `window`).
-  root.$a = $a;
+  root.$a = root._anyNoConflict = $a;
 
   // Current version
   $a.VERSION = '0.0.1';
@@ -73,13 +73,6 @@
     return obj1;
   };
 
-	// Define an external bind handler.
-	$a.bindHandler = null;
-	
-	$a.registerBindHandler = function(handler) {
-		$a.bindHandler = handler;
-	}
-
   // ### $a.json("str"), $a.json(object)
   // Convert an object to a JSON string, or parse a string
   // as JSON.
@@ -97,19 +90,14 @@
 
   // Add event listener for event to node.
   $a.bind = function(node, event, callback, useCapture) {
-		if($a.bindHandler != null) {
-			$a.bindHandler.bind(node, event, callback, useCapture);
-		} else {
-			node.addEventListener(event, callback, useCapture);
-		}
+    if (node.addEventListener) node.addEventListener(event, callback, useCapture);
+		else if (node.attachEvent) node.attachEvent("on" + event, callback);
   };
-  
+
+  // Remove event listener from node.
   $a.unbind = function(node, event, callback, useCapture) {
-		if($a.bindHandler != null) {
-			$a.bindHandler.unbind(node, event, callback, useCapture);
-		} else {
-			node.removeEventListener(event, callback, useCapture);
-		}
+    if (node.removeEventListener) node.removeEventListener(event, callback, useCapture);
+    else if (node.detachEvent) node.detachEvent("on" + event, callback);
 	};
 
   // ## DOM traversal & manipulation
