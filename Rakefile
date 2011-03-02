@@ -5,25 +5,35 @@ HEADER = /((^\s*\/\/.*\n)+)/
 VERSION_NUM = %r{\$a\.VERSION = '(.+)';}
 
 def version
-  @version ||= source.match(VERSION_NUM)[1] << ' (rev:' << `git describe --always`.strip << ')'  
+  @version ||= source(:core).match(VERSION_NUM)[1] << ' (rev:' << `git describe --always`.strip << ')'  
 end
 
-def source
-  @source ||= File.read('any.js')  
+def source(*args)
+  args.flatten.uniq.inject('') do |str,js|
+    str << File.read("any.#{js.to_s.gsub('_', '.')}.js")
+  end
+end
+
+def header
+  @header ||= source(:core).match(HEADER).to_s.gsub('@VERSION@', version).squeeze(' ')
 end
 
 desc "Use the Closure Compiler to compress any.js"
 task :build do
-  header  = source.match(HEADER).to_s.gsub('@VERSION@', version).squeeze(' ')
-  min     = Closure::Compiler.new.compress(source)
-  File.open('any-min.js', 'w') do |file|
-    file.write header + min
+  { 'any-min.js' => %w{core},
+    'any.mt-min.js' => %w{mt mt.moz mt.webkit mt.emulate},
+    'any.all-min.js' => %w{core mt mt.moz mt.webkit mt.emulate}
+  }.each do |js,components|
+    min     = Closure::Compiler.new.compress(source(components))
+    File.open(js, 'w') do |file|
+      file.write header + min
+    end
   end
 end
 
 desc "Build the docco documentation"
 task :doc do
-  sh "docco any.js"
+  sh "docco any.core.js any.mt.js"
   sh "sed 's/@VERSION@/#{version}/' docs/any.html > docs/_any.html"
   mv 'docs/_any.html', 'docs/any.html'
 end

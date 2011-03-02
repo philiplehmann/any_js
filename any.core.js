@@ -32,17 +32,10 @@
   // ## Utility methods
   //
   // 
-	$a.bindHandler = null;
 
   $a.ready = function(loadedCallback) {
 		this.bind("DOMContentLoaded", loadedCallback, false);
   };
-
-  $a.css = function(node, object) {
-		for(var key in object) {
-			node.style[key] = object[key];
-		}
-	};
 
   // Returns `true` if supplied object is a function.
   $a.isFunc = function(func) {
@@ -79,6 +72,9 @@
     }
     return obj1;
   };
+
+	// Define an external bind handler.
+	$a.bindHandler = null;
 	
 	$a.registerBindHandler = function(handler) {
 		$a.bindHandler = handler;
@@ -273,7 +269,7 @@
 				break;
 			}
 		} else {
-			if ( ! this.isObj(node.matrix) { node.matrix = {}; }
+			if ( ! this.isObj(node.matrix)) { node.matrix = {}; }
 			if(node.matrix.translate == undefined) node.matrix.translate = {};
 			if(node.matrix.scale == undefined) node.matrix.scale = {};
 			if(node.matrix.rotate == undefined) node.matrix.rotate = {};
