@@ -100,6 +100,16 @@
     else if (node.detachEvent) node.detachEvent("on" + event, callback);
 	};
 
+  // Returns `true` if element (default `<div/>`) supports the
+  // DOM event in question.
+  //
+  // Basically an internal method, but might be useful.
+  $a._supportsEvent = function(event, element) {
+    element = element || document.createElement('div');
+    event = 'on' + event;
+    return (event in element);
+  };
+
   // ## DOM traversal & manipulation
 
   // ### $a.id("id"), $a.id(node, "id")

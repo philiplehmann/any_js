@@ -46,6 +46,11 @@
     $mt.backend = root._MTEmulateTouch;
   };
 
+  // check for touch support
+  $mt.support.mozTouch = $a._supportsEvent('moztouchstart');
+  $mt.support.touch = $a._supportsEvent('touchstart') || $mt.support.mozTouch;
+
+  // set default backend
 	if ($mt.support.touch) {
 	  $mt.backend = $mt.support.mozTouch ? root._MTMozTouch : root._MTWebkitTouch;
 	}
