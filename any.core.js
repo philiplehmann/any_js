@@ -32,6 +32,17 @@
   // ## Utility methods
   //
   // 
+	$a.bindHandler = null;
+
+  $a.ready = function(loadedCallback) {
+		this.bind("DOMContentLoaded", loadedCallback, false);
+  };
+
+  $a.css = function(node, object) {
+		for(var key in object) {
+			node.style[key] = object[key];
+		}
+	};
 
   // Returns `true` if supplied object is a function.
   $a.isFunc = function(func) {
@@ -68,6 +79,10 @@
     }
     return obj1;
   };
+	
+	$a.registerBindHandler = function(handler) {
+		$a.bindHandler = handler;
+	}
 
   // ### $a.json("str"), $a.json(object)
   // Convert an object to a JSON string, or parse a string
@@ -86,18 +101,20 @@
 
   // Add event listener for event to node.
   $a.bind = function(node, event, callback, useCapture) {
-    node.addEventListener(event, callback, useCapture);
-  };
-
-  // Remove event listener from node.
-  $a.unbind = function(node, event, callback, useCapture) {
-    node.removeEventListener(event, callback, useCapture);
+		if($a.bindHandler != null) {
+			$a.bindHandler.bind(node, event, callback, useCapture);
+		} else {
+			node.addEventListener(event, callback, useCapture);
+		}
   };
   
-  // Execute callback when `DOMContentLoaded` event is fired.
-  $a.ready = function(loadedCallback) {
-    $a.bind(defaultNode, 'DOMContentLoaded', loadedCallback, false);
-  };
+  $a.unbind = function(node, event, callback, useCapture) {
+		if($a.bindHandler != null) {
+			$a.bindHandler.unbind(node, event, callback, useCapture);
+		} else {
+			node.removeEventListener(event, callback, useCapture);
+		}
+	};
 
   // ## DOM traversal & manipulation
 
@@ -229,6 +246,64 @@
   $a._animationCleanup = function(event) {
     $a.animate(event.currentTarget, {property: null, duration: null, timingFunction: null, delay: null}, {}, false);
   };
+
+	// todo
+	$a.transform = function(node, type, setterX, setterY, setterZ) {
+		if(node == undefined) {
+			return;
+		}
+		if(this.isStr(type) && setterX === undefined) {
+			if(node.matrix == undefined) node.matrix = {};
+
+			switch(type) {
+				case 'translate':
+					if(node.matrix.translate == undefined) node.matrix.translate = {x: undefined, y: undefined, z: undefined};
+				  return node.matrix.translate;
+				break;
+				case 'scale':
+				  if(node.matrix.scale == undefined) node.matrix.scale = {x: undefined, y: undefined, z: undefined};
+				  return node.matrix.scale;
+				break;
+				case 'rotate':
+				  if(node.matrix.rotate == undefined) node.matrix.rotate = {x: undefined, y: undefined, z: undefined};
+				  return node.matrix.rotate;
+				break;
+				default:
+				 return null;
+				break;
+			}
+		} else {
+			if ( ! this.isObj(node.matrix) { node.matrix = {}; }
+			if(node.matrix.translate == undefined) node.matrix.translate = {};
+			if(node.matrix.scale == undefined) node.matrix.scale = {};
+			if(node.matrix.rotate == undefined) node.matrix.rotate = {};
+
+			switch(type) {
+				case 'translate':
+					if(setterX != undefined) node.matrix.translate.x = setterX;
+					if(setterY != undefined) node.matrix.translate.y = setterY;
+					if(setterZ != undefined) node.matrix.translate.z = setterZ;
+				break;
+				case 'scale':
+					if(setterX != undefined) node.matrix.scale.x = setterX;
+					if(setterY != undefined) node.matrix.scale.y = setterY;
+					if(setterZ != undefined) node.matrix.scale.z = setterZ;
+				break;
+				case 'rotate':
+					if(setterX != undefined) node.matrix.rotate.x = setterX;
+					if(setterY != undefined) node.matrix.rotate.y = setterY;
+					if(setterZ != undefined) node.matrix.rotate.z = setterZ;
+				break;
+			}
+			var rotate = node.matrix.rotate.x != undefined ? 'rotate(' + node.matrix.rotate.x + 'deg)' : '';
+			var translate = (node.matrix.translate.x != undefined && node.matrix.translate.y != undefined) ? 'translate(' + node.matrix.translate.x + 'px,' + node.matrix.translate.y + 'px)' : '';
+			var scale = node.matrix.scale.x != undefined ? 'scale(' + node.matrix.scale.x + ')' : '';
+			var style =  translate + ' ' +  rotate + ' ' + scale;
+			node.style.webkitTransform = style;
+			node.style.MozTransform = style;
+		}
+		return null;
+	}
 
   // Private: ClassList implementation for browser
   // which have no support for it.
