@@ -364,12 +364,12 @@
     httpRequest.onreadystatechange = function() { 
       if (httpRequest.readyState == 4) {
         if (httpRequest.status == 200) {
-          if($a.isFunc(onsuccess)) {
-            onsuccess(httpRequest.responseText);
+          if($a.isFunc(params.onsuccess)) {
+            params.onsuccess(httpRequest);
           }
         } else {
-          if($a.isFunc(onerror)) {
-            onerror();
+          if($a.isFunc(params.onerror)) {
+            params.onerror(httpRequest);
           }
         }
       }
