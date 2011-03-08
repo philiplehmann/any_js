@@ -17,7 +17,7 @@
   var root = this;
 
   // Points to `window.document` or `root` when on server object.
-  var defaultNode = root.document != undefined ? root.document : root;
+  var defaultNode = root.document ? root.document : root;
 
   // Internal save object, so we can asume `$a` is available in
   // our context.
@@ -118,27 +118,24 @@
   //     $a.id('someId');       // searches in window.document
   //     $a.id(node, 'someId'); // searches in node
   //
-  $a.id = function(node, id) {
-    node = id ? node : defaultNode;
-    id = id || node;
-
+  $a.id = function() {
+    node = arguments.length > 1 ? arguments[0] : defaultNode;
+    id = arguments.length > 1 ? arguments[1] : arguments[0];
     return node.getElementById(id);
   };  
   
   // ### $a.first("css"), $a.first(node, "css")
   // Find first matching element using a CSS expression.
-  $a.first = function(node, query) {
-    node = query ? node : defaultNode;
-    query = query || node;
-
+  $a.first = function() {
+    node = arguments.length > 1 ? arguments[0] : defaultNode;
+    query = arguments.length > 1 ? arguments[1] : arguments[0];
     return node.querySelector(query);
   };
 
   // Find all matching elements using a CSS expression.
-  $a.all = function(node, query) {
-    node = query ? node : defaultNode;
-    query = query || node;
-
+  $a.all = function() {
+    node = arguments.length > 1 ? arguments[0] : defaultNode;
+    query = arguments.length > 1 ? arguments[1] : arguments[0];
     return node.querySelectorAll(query);
   };
 
