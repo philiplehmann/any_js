@@ -33,10 +33,6 @@
   //
   // 
 
-  $a.ready = function(loadedCallback) {
-		this.bind("DOMContentLoaded", loadedCallback, false);
-  };
-
   // Returns `true` if supplied object is a function.
   $a.isFunc = function(func) {
     return (typeof func === 'function')
@@ -88,6 +84,19 @@
   // ## DOM event handling
   //
 
+  // ### $a.ready(funcRef)
+  //
+  // Cross-browser method to handle `DOMContentLoaded`, also provides a fallback to
+  // `onload` if everything fails :)
+  $a.ready = function(loadedCallback) {
+    if (defaultNode.addEventListener) defaultNode.addEventListener("DOMContentLoaded", loadedCallback, false);
+    else if (defaultNode.readyState && defaultNode.readyState === "complete") loadedCallback();
+    else if (defaultNode.readyState && defaultNode.attachEvent) defaultNode.attachEvent('onreadystatechange', function() { if (defaultNode.readyState === "complete") loadedCallback(); });
+    else $a.bind(defaultNode, "load", loadedCallback);
+  };
+
+  // ### $a.bind(node, "click", funcRef)
+  //
   // Add event listener for event to node.
   $a.bind = function(node, event, callback, useCapture) {
     if (node.addEventListener) node.addEventListener(event, callback, useCapture);
