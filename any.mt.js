@@ -1,4 +1,4 @@
-//     any.js @VERSION@
+//     any.mt.js @VERSION@
 //     (c) 2011 Philip Lehmann, Lukas Westermann, at-point ag
 //     any.js is freely distributable under the MIT license.
 //     Portions of any.js are inspired or borrowed from Underscore.js,
@@ -7,52 +7,85 @@
 //     TODO: gh-pages
 
 (function($a) {
-  // ## Common variables
-  //
-  
-  // Is either `window` or `global` server object.
-  var root = this;
-  
-  // Internal save object, so we can asume `$mt` is available in
-  // our context.
-  var $mt = {};
-
-  // Export our methods as `$a` in `root` (i.e. `window`).
-  $a.mt = $mt;
-
-  // Current version
-  $mt.VERSION = '0.0.1';
-		
-	// List of known touch events, any other events are directly passed to `$a.bind`.
-	$mt.TOUCH_EVENTS = ['touchstart', 'touchmove', 'touchend', 'gesturestart', 'gesturechange', 'gestureend'];
+	var root = this;
 	
-	// Browser feature detection
-	$mt.support = { touch: false, mozTouch: false };
+	var $mt = {};
 	
-	// Currently used backend.
-	$mt.backend = null;
+	root.$mt = $mt;
 	
-	$mt.bind = function(node, event, callback, useCapture) {
-		if ($mt.backend && $mt.TOUCH_EVENTS.indexOf(event) != -1) $mt.backend.bind(node, event, callback, useCapture);
-		else $a.bind(node, event, callback, useCapture);
+	$mt.VERSION = '0.0.1';
+	
+	$mt.bindHandler = {};
+	$mt.registerBindHandler = function(handler, browser) {
+		this.bindHandler[browser] = handler;
+	};
+	
+	$mt.unregsiterBindHandler = function(browser) {
+		delete this.bindHandler[browser];
+	}
+	
+	$mt.bind = function(node, event, callback, useCapture, data) {
+		if($a.isArr(node) || $a.isCol(node)) {
+			for(var i=0; i < node.length; i++) {
+				this.bind(node[i], event, callback, useCapture, data);
+			}
+			return;
+		}
+		var browser = $a.browserDetection();
+		if(this.bindHandler[browser]) {
+			return this.bindHandler[browser].bind(node, event, callback, useCapture, data);
+		} else {
+			return EmulateTouch.bind(node, event, callback, useCapture, data);
+		}
 	};
 	
 	$mt.unbind = function(node, event, callback, useCapture) {
-		if ($mt.backend && $mt.TOUCH_EVENTS.indexOf(event) != -1) $mt.backend.unbind(node, event, callback, useCapture);
-		else $a.unbind(node, event, callback, useCapture);		
+		if($a.isArr(node) || $a.isCol(node)) {
+			for(var i=0; i < node.length; i++) {
+				this.unbind(node[i], event, callback, useCapture);
+			}
+			return;
+		}
+		var browser = $a.browserDetection();
+		if(this.bindHandler[browser]) {
+			return this.bindHandler[browser].bind(node, event, callback, useCapture);
+		} else {
+			return EmulateTouch.bind(node, event, callback, useCapture);
+		}
 	};
-
-  $mt.emulate = function() {
-    $mt.backend = root._MTEmulateTouch;
-  };
-
-  // check for touch support
-  $mt.support.mozTouch = $a._supportsEvent('moztouchstart');
-  $mt.support.touch = $a._supportsEvent('touchstart') || $mt.support.mozTouch;
-
-  // set default backend
-	if ($mt.support.touch) {
-	  $mt.backend = $mt.support.mozTouch ? root._MTMozTouch : root._MTWebkitTouch;
+	
+	/**
+	 * swipe a node
+	 * obj {
+	 * 	 node - HTMLElement 
+	 *   type - horizontal | vertical
+	 *   onSwipeStart - 
+	 *   startAfter - default 20px
+	 *   onSwipeMove, 
+	 *   onSwipeEnd
+	 * }
+	 */
+	$mt.swipe = function(obj) {
+		
 	}
+	
+	var EmulateTouch = {
+		_mapping: {touch: 'click', touchstart: 'mousedown', touchmove: 'mousemove', touchend: 'mouseup'},
+		bind: function(node, event, callback, useCapture, data) {
+			if(this._mapping[event] !== undefined) {
+				return $a.bind(node, this._mapping[event], callback, useCapture, data);
+			} else {
+				return $a.bind(node, event, callback, useCapture, data);
+			}
+		},
+		
+		unbind: function(node, event, callback, useCapture) {
+			if(this._mapping[event] !== undefined) {
+				return $a.unbind(node, this._mapping[event], callback, useCapture, data);
+			} else {
+				return $a.unbind(node, event, callback, useCapture, data);
+			}
+		}
+	};
 	
 })(this._anyNoConflict);

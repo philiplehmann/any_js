@@ -1,4 +1,4 @@
-//     any.js @VERSION@
+//     any.core.js @VERSION@
 //     (c) 2011 Philip Lehmann, Lukas Westermann, at-point ag
 //     any.js is freely distributable under the MIT license.
 //     Portions of any.js are inspired or borrowed from Underscore.js,
@@ -32,6 +32,38 @@
   // ## Utility methods
   //
   // 
+  //
+	
+	// execute callback when dom is ready
+  $a.ready = function(loadedCallback) {
+		this.bind(document, "DOMContentLoaded", loadedCallback, false);
+  };
+	
+	$a.CHROME = 'chrome';
+	$a.FIREFOX = 'firefox';
+	$a.FENNEC = 'fennec';
+	$a.SAFARI = 'safari';
+	$a.MOBILE_SAFARI = 'mobile_safari';
+	$a._BROWSERS = {};
+	$a._BROWSERS[$a.CHROME] = /chrome.*safari/gi;
+	$a._BROWSERS[$a.FIREFOX] = /Firefox\/4/gi;
+	$a._BROWSERS[$a.FENNEC] = /fennec/gi;
+	$a._BROWSERS[$a.SAFARI] = /version.*safari/gi;
+	$a._BROWSERS[$a.MOBILE_SAFARI] = /version.*mobile.*safari/gi;
+  // return the browser type chrome, firefox, fennic, safari or mobile_safari
+	$a.browserDetection = function() {
+		for(var browser in this._BROWSERS) {
+			if(this.isBrowser(browser)) {
+				return browser;
+			}
+		}
+		return false;
+	};
+	
+	// Returns boolen if the given browser is the actual used one
+	$a.isBrowser = function(browser) {
+		return (navigator.userAgent.match($a._BROWSERS[browser]) !== null);
+	};
 
   // Returns `true` if supplied object is a function.
   $a.isFunc = function(func) {
@@ -47,6 +79,11 @@
   $a.isArr = function(arr) {
     return Array.isArray(arr);
   };
+
+	// Returns `true` if supplied object is a HTMLCollection (FF) or NodeList
+	$a.isCol = function(collection) {
+		return collection instanceof NodeList || collection instanceof HTMLCollection;
+	};
   
   // Returns `true` if supplied object is a string.
   $a.isStr = function(str) {
@@ -55,6 +92,7 @@
   
   // Extend obj1 with obj2 recursive
   $a.extend = function(obj1, obj2) {
+		if(obj1 == undefined) obj1 = {};
     for (var p in obj2) {
       try {
         if ($a.isObj(obj2[p])) {
@@ -98,15 +136,33 @@
   // ### $a.bind(node, "click", funcRef)
   //
   // Add event listener for event to node.
-  $a.bind = function(node, event, callback, useCapture) {
-    if (node.addEventListener) node.addEventListener(event, callback, useCapture);
-		else if (node.attachEvent) node.attachEvent("on" + event, callback);
+	// node - node or node array
+	// event - event name
+	// callback - function
+	// useCapture - 
+	// data - whatever
+  $a.bind = function(node, event, callback, useCapture, data) {
+		if(this.isArr(node) || this.isCol(node)) {
+			for(var i=0; i < node.length; i++) {
+				this.bind(node[i], event, callback, useCapture, data);
+			}
+			return;
+		}
+		
+		if (this.isFunc(node.addEventListener)) return node.addEventListener(event, function(ev) {return callback(ev, data)}, useCapture);
+		else if (this.isFunc(node.attachEvent)) return node.attachEvent("on" + event, callback);
   };
 
   // Remove event listener from node.
   $a.unbind = function(node, event, callback, useCapture) {
-    if (node.removeEventListener) node.removeEventListener(event, callback, useCapture);
-    else if (node.detachEvent) node.detachEvent("on" + event, callback);
+		if(this.isArr(node) || this.isCol(node)) {
+			for(var i=0; i < node.length; i++) {
+				this.unbind(node[i], event, callback, useCapture);
+			}
+			return;
+		}
+		if (this.isFunc(node.removeEventListener)) return node.removeEventListener(event, function(ev) {return callback(ev, data)}, useCapture);
+    else if (this.isFunc(node.detachEvent)) return node.detachEvent("on" + event, callback);
 	};
 
   // Returns `true` if element (default `<div/>`) supports the
@@ -128,25 +184,51 @@
   //     $a.id(node, 'someId'); // searches in node
   //
   $a.id = function() {
-    node = arguments.length > 1 ? arguments[0] : defaultNode;
-    id = arguments.length > 1 ? arguments[1] : arguments[0];
+    var node = arguments.length > 1 ? arguments[0] : defaultNode;
+    var id = arguments.length > 1 ? arguments[1] : arguments[0];
     return node.getElementById(id);
-  };  
+  };
+	
+	// shortcut for getElementsByClassName
+	$a.elsByClass = function() {
+		var node = arguments.length > 1 ? arguments[0] : defaultNode;
+    var className = arguments.length > 1 ? arguments[1] : arguments[0];
+		return node.getElementsByClassName(className);
+	};
+	
+	// shortcut for getElementsByTagName
+	$a.elsByTag = function(node, tagName) {
+		var node = arguments.length > 1 ? arguments[0] : defaultNode;
+    var tagName = arguments.length > 1 ? arguments[1] : arguments[0];
+		return node.getElementsByTagName(tagName);
+	};
   
   // ### $a.first("css"), $a.first(node, "css")
   // Find first matching element using a CSS expression.
+	// include sizzle js if you want to use this function in any browser (http://sizzlejs.com/)
   $a.first = function() {
-    node = arguments.length > 1 ? arguments[0] : defaultNode;
-    query = arguments.length > 1 ? arguments[1] : arguments[0];
-    return node.querySelector(query);
+    var node = arguments.length > 1 ? arguments[0] : defaultNode;
+    var query = arguments.length > 1 ? arguments[1] : arguments[0];
+    if(this.isFunc(node.querySelector)) {
+			return node.querySelector(innerquery);
+		} else if(this.isFunc(Sizzle)) {
+			var arr = Sizzle(innerquery, node);
+			if(arr.length > 0) return arr[0];
+			return null;
+		}
   };
 
   // Find all matching elements using a CSS expression.
+	// include sizzle js if you want to use this function in any browser (http://sizzlejs.com/)
   $a.all = function() {
-    node = arguments.length > 1 ? arguments[0] : defaultNode;
-    query = arguments.length > 1 ? arguments[1] : arguments[0];
-    return node.querySelectorAll(query);
-  };
+    var node = arguments.length > 1 ? arguments[0] : defaultNode;
+    var query = arguments.length > 1 ? arguments[1] : arguments[0];
+    if(this.isFunc(node.querySelectorAll)) {
+			return node.querySelectorAll(innerquery);
+		} else if(this.isFunc(Sizzle)) {
+			return Sizzle(innerquery, node);
+		}
+	};
 
   // Build nodes from HTML snippet.
   $a.html = function(html) {
@@ -172,19 +254,59 @@
   //     $a.css(node, { marginTop: '12px', opacity: 0.5 });
   //
   $a.css = function(node, object) {
+		if(this.isArr(node) || this.isCol(node)) {
+			for(var i=0; i < node.length; i++) {
+				this.css(node[i], object);
+			}
+			return;
+		}
     for(var key in object) {
       node.style[key] = object[key];
     }
   };
 
+	$a.show = function(node) {
+		this.css(node, {display:''});
+	};
+
+	$a.hide = function(node) {
+		this.css(node, {display:'none'});
+	};
+	
+	$a.toggle = function(node) {
+		if(this.isArr(node) || this.isCol(node)) {
+			for(var i=0; i < node.length; i++) {
+				this.toggle(node[i]);
+			}
+			return;
+		}
+		if(node.style.display == 'none') {
+			this.show(node);
+		} else {
+			this.hide(node);
+		}
+	};
+
   // Add class to node.
   $a.addClass = function(node, className) {
+		if(this.isArr(node) || this.isCol(node)) {
+			for(var i=0; i < node.length; i++) {
+				this.addClass(node[i], className);
+			}
+			return;
+		}
     if(!node.classList) node.classList = new this._ClassList(node);
     return node.classList.add(className);
   };
 
   // Remove class from node.
   $a.removeClass = function(node, className) {
+		if(this.isArr(node) || this.isCol(node)) {
+			for(var i=0; i < node.length; i++) {
+				this.removeClass(node[i], className);
+			}
+			return;
+		}
     if( ! node.classList) node.classList = new this._ClassList(node);
     return node.classList.remove(className);
   };
@@ -197,6 +319,12 @@
 
   // Toggle class.
   $a.toggleClass = function(node, className) {
+		if(this.isArr(node) || this.isCol(node)) {
+			for(var i=0; i < node.length; i++) {
+				this.toggleClass(node[i], className);
+			}
+			return;
+		}
     if ( ! node.classList) node.classList = new this._ClassList(node);
     return node.classList.toggle(className);
   };
@@ -213,6 +341,12 @@
    * moz doc http://developer.mozilla.org/en/CSS/CSS_transitions
    */
   $a.animate = function(node, animationObj, cssObj, cleanup, callback) {
+		if(this.isArr(node) || this.isCol(node)) {
+			for(var i=0; i < node.length; i++) {
+				this.animate(node[i], animationObj, cssObj, cleanup, callback);
+			}
+			return;
+		}
     cleanup = cleanup == undefined ? true : cleanup;
 
     if(animationObj.property != undefined) {
@@ -248,7 +382,7 @@
   };
 
 	// todo
-	$a.transform = function(node, type, setterX, setterY, setterZ) {
+	$a.transform = function(node, type, setterX, setterY, setterZ, returnValue) {
 		if(node == undefined) {
 			return;
 		}
@@ -299,8 +433,15 @@
 			var translate = (node.matrix.translate.x != undefined && node.matrix.translate.y != undefined) ? 'translate(' + node.matrix.translate.x + 'px,' + node.matrix.translate.y + 'px)' : '';
 			var scale = node.matrix.scale.x != undefined ? 'scale(' + node.matrix.scale.x + ')' : '';
 			var style =  translate + ' ' +  rotate + ' ' + scale;
-			node.style.webkitTransform = style;
-			node.style.MozTransform = style;
+			if(returnValue !== true) {
+				node.style.webkitTransform = style;
+				node.style.MozTransform = style;
+				node.style.oTransform = style;
+				node.style.transform = style;
+			} else {
+				return style
+			}
+			return;
 		}
 		return null;
 	}
@@ -345,7 +486,7 @@
       this.list = arr;
     };
     this.clean();
-  };  
+  };
 
   // ## AJAX
 
@@ -360,7 +501,15 @@
    */
   $a.ajax = function(params) {
     if(params.method == undefined) params.method = 'GET';
-
+		
+		if(this.isObj(params.data)) {
+			var arr = [];
+			for(var key in params.data) {
+				arr.push(key + '=' + encodeURIComponent(params.data[key]));
+			}
+			params.data = arr.join('&');
+		}
+		
     if(params.method == 'GET') {
       params.url = params.url + '?' + params.data;
       params.data = null;
