@@ -142,6 +142,8 @@
 	// useCapture - 
 	// data - whatever
   $a.bind = function(node, event, callback, useCapture, data) {
+		useCapture = useCapture !== true ? false : true;
+		
 		if(this.isArr(node) || this.isCol(node)) {
 			for(var i=0; i < node.length; i++) {
 				this.bind(node[i], event, callback, useCapture, data);
@@ -149,20 +151,43 @@
 			return;
 		}
 		
-		if (this.isFunc(node.addEventListener)) return node.addEventListener(event, function(ev) {return callback(ev, data)}, useCapture);
-		else if (this.isFunc(node.attachEvent)) return node.attachEvent("on" + event, callback);
+		if (this.isFunc(node.addEventListener)) {
+			if(data) {
+				return node.addEventListener(event, function(ev) {return callback(ev, data)}, useCapture);
+			} else {
+				return node.addEventListener(event, callback, useCapture);
+			}
+		} else if (this.isFunc(node.attachEvent)) {
+			if(data) {
+				return node.attachEvent("on" + event, function(ev) {return callback(ev, data)});
+			} else {
+				return node.attachEvent("on" + event, callback);
+			}
+		}
   };
 
   // Remove event listener from node.
-  $a.unbind = function(node, event, callback, useCapture) {
+  $a.unbind = function(node, event, callback, useCapture, data) {
+		useCapture = useCapture !== true ? false : true;
 		if(this.isArr(node) || this.isCol(node)) {
 			for(var i=0; i < node.length; i++) {
 				this.unbind(node[i], event, callback, useCapture);
 			}
 			return;
 		}
-		if (this.isFunc(node.removeEventListener)) return node.removeEventListener(event, function(ev) {return callback(ev, data)}, useCapture);
-    else if (this.isFunc(node.detachEvent)) return node.detachEvent("on" + event, callback);
+		if (this.isFunc(node.removeEventListener)) {
+			if(data) {
+				return node.removeEventListener(event, function(ev) {return callback(ev, data)}, useCapture);
+			} else {
+				return node.removeEventListener(event, callback, useCapture);
+			}
+    } else if (this.isFunc(node.detachEvent)) {
+			if(data) {
+				return node.detachEvent("on" + event, function(ev) {return callback(ev, data)});
+			} else {
+				return node.detachEvent("on" + event, callback);
+			}
+		}
 	};
 
   // Returns `true` if element (default `<div/>`) supports the
@@ -210,9 +235,9 @@
     var node = arguments.length > 1 ? arguments[0] : defaultNode;
     var query = arguments.length > 1 ? arguments[1] : arguments[0];
     if(this.isFunc(node.querySelector)) {
-			return node.querySelector(innerquery);
+			return node.querySelector(query);
 		} else if(this.isFunc(Sizzle)) {
-			var arr = Sizzle(innerquery, node);
+			var arr = Sizzle(query, node);
 			if(arr.length > 0) return arr[0];
 			return null;
 		}
@@ -224,9 +249,9 @@
     var node = arguments.length > 1 ? arguments[0] : defaultNode;
     var query = arguments.length > 1 ? arguments[1] : arguments[0];
     if(this.isFunc(node.querySelectorAll)) {
-			return node.querySelectorAll(innerquery);
+			return node.querySelectorAll(query);
 		} else if(this.isFunc(Sizzle)) {
-			return Sizzle(innerquery, node);
+			return Sizzle(query, node);
 		}
 	};
 
@@ -240,9 +265,17 @@
   // Read and write HTML5 data attributes.
   $a.data = function(node, key, value) {
     if(value != undefined) {
-      node.setAttribute('data-' + key, value);
+      if(node.dataset) {
+				node.dataset[key] = value;
+			} else {
+				node.setAttribute('data-' + key, value);
+			}
     } else {
-      return node.getAttribute('data-' + key);
+			if(node.dataset) {
+				return node.dataset[key];
+			} else { 
+				return node.getAttribute('data-' + key);
+			}
     }
   };
 
@@ -502,18 +535,18 @@
   $a.ajax = function(params) {
     if(params.method == undefined) params.method = 'GET';
 		
-		if(this.isObj(params.data)) {
+		if(this.isObj(params.data) && params.data != undefined) {
 			var arr = [];
 			for(var key in params.data) {
 				arr.push(key + '=' + encodeURIComponent(params.data[key]));
 			}
 			params.data = arr.join('&');
 		}
-		
-    if(params.method == 'GET') {
+		if(params.method == 'GET' && params.data != undefined) {
       params.url = params.url + '?' + params.data;
       params.data = null;
     }
+    
 
     var httpRequest = new XMLHttpRequest();
     httpRequest.onreadystatechange = function() { 

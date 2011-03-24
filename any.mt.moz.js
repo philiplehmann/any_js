@@ -7,57 +7,47 @@
 //     TODO: gh-pages
 
 
-(function($mt) {
-	var root = this;
+(function($a, $mt) {
 	
 	var MOZTouch = {};
-	
-	$mt.registerBindHandler(MOZTouch, $a.FIREFOX);
+	$a.ready(function() {
+		$mt.registerBindHandler(MOZTouch, $a.FIREFOX);
+	});
 	
 	MOZTouch._data = {};
 	MOZTouch._sids = {};
 	MOZTouch._streamIds = [];
-	MOZTouch.touchEvents = {
-			touchstart: 'MozTouchDown', 
-			touchmove: 'MozTouchMove', 
-			touchend: 'MozTouchUp', 
-			gesturestart: 'MozTouchDown', 
-			gesturechange: 'MozTouchMove', 
-			gestureend:'MozTouchUp', 
-			touch_hidden_start: 'MozTouchDown', 
-			touch_hidden_move: 'MozTouchMove',
-			touch_hidden_end: 'MozTouchUp'
-	};
 	
 	MOZTouch.bind = function(node, event, callback, useCapture, data) {
+		data = $a.extend(data, {mozCallback: callback});
 		event = event.toLowerCase();
 		switch(event) {
 			case 'touch':
-				$a.bind(node, 'moztouchdown', function(ev) {return this.touch_start(ev, callback, data)}, useCapture);
-				$a.bind(node, 'moztouchmove', function(ev) {return this.touch_move(ev, callback, data)}, useCapture);
-				$a.bind(node, 'moztouchup', function(ev) {return this.touch_end(ev, callback, data)}, useCapture);
+				$a.bind(node, 'MozTouchDown', MOZTouch.touch_start, useCapture);
+				$a.bind(node, 'MozTouchMove', MOZTouch.touch_move, useCapture);
+				$a.bind(node, 'MozTouchUp', MOZTouch.touch_end, useCapture, data);
 			break;
 			case 'touchstart':
-				$a.bind(node, 'moztouchdown', function(ev) {return this.touchDown(ev, callback, data)}, useCapture);
+				$a.bind(node, 'MozTouchDown', MOZTouch.touchDown, useCapture, data);
 			break;
 			case 'touchmove':
-				$a.bind(node, 'moztouchmove', function(ev) { return this.touchMove(ev, callback, data)}, useCapture);
+				$a.bind(node, 'MozTouchMove', MOZTouch.touchMove, useCapture, data);
 			break;
 			case 'touchend':
-				$a.bind(node, 'moztouchup', function(ev) {return this.touchUp(ev, callback, data)}, useCapture);
+				$a.bind(node, 'MozTouchUp', MOZTouch.touchUp, useCapture, data);
 			break;
 			case 'touchcancel':
-				$a.bind(node, 'moztouchcancel', function(ev) {return this.touchCancel(ev, callback, data)}, useCapture);
+				$a.bind(node, 'MozTouchCancel', MOZTouch.touchCancel, useCapture, data);
 			break;
 			case 'gesturestart':
-				MOZTouch.bind(node, 'touchstart', function(ev) {return this.gestureStart(ev, callback, data)}, useCapture);
+				MOZTouch.bind(node, 'touchstart', MOZTouch.gestureStart, useCapture, data);
 			break;
 			case 'gesturechange':
-				MOZTouch.bind(node, 'touchmove', function(ev) {return this.gestureChange(ev, callback, data)}, useCapture);
+				MOZTouch.bind(node, 'touchmove', MOZTouch.gestureChange, useCapture, data);
 			break;
 			case 'gestureend':
-				MOZTouch.bind(node, 'touchend', function(ev) {return this.gestureEnd(ev, callback, data)}, useCapture);
-				MOZTouch.bind(node, 'touchcancel', function(ev) {return this.gestureEnd(ev, callback, data)}, useCapture);
+				MOZTouch.bind(node, 'touchend', MOZTouch.gestureEnd, useCapture, data);
+				MOZTouch.bind(node, 'touchcancel', MOZTouch.gestureEnd, useCapture, data);
 			break;
 			default:
 				$a.bind(node, event, callback, useCapture, data);
@@ -65,36 +55,36 @@
 		}
 	};
 	
-	MOZTouch.unbind = function(node, event, callback, useCapture) {
+	MOZTouch.unbind = function(node, event, callback, useCapture, data) {
+		data = $a.extend(data, {mozCallback: callback});
 		event = event.toLowerCase();
 		switch(event) {
 			case 'touch':
-				$a.unbind(node, 'moztouchdown', function(ev) {return this.touch_start(ev, callback, data)}, useCapture);
-				$a.unbind(node, 'moztouchmove', function(ev) {return this.touch_move(ev, callback, data)}, useCapture);
-				$a.unbind(node, 'moztouchup', function(ev) {return this.touch_end(ev, callback, data)}, useCapture);
+				$a.unbind(node, 'MozTouchDown', MOZTouch.touch_start, useCapture);
+				$a.unbind(node, 'MozTouchMove', MOZTouch.touch_move, useCapture);
+				$a.unbind(node, 'MozTouchUp', MOZTouch.touch_end, useCapture, data);
 			break;
 			case 'touchstart':
-				console.debug('use mt moz');
-				$a.unbind(node, 'moztouchdown', function(ev) {return this.touchDown(ev, callback, data)}, useCapture);
+				$a.unbind(node, 'MozTouchDown', MOZTouch.touchDown, useCapture, data);
 			break;
 			case 'touchmove':
-				$a.unbind(node, 'moztouchmove', function(ev) { return this.touchMove(ev, callback, data)}, useCapture);
+				$a.unbind(node, 'MozTouchMove', MOZTouch.touchMove, useCapture, data);
 			break;
 			case 'touchend':
-				$a.unbind(node, 'moztouchup', function(ev) {return this.touchUp(ev, callback, data)}, useCapture);
+				$a.unbind(node, 'MozTouchUp', MOZTouch.touchUp, useCapture, data);
 			break;
 			case 'touchcancel':
-				$a.unbind(node, 'moztouchcancel', function(ev) {return this.touchCancel(ev, callback, data)}, useCapture);
+				$a.unbind(node, 'MozTouchCancel', MOZTouch.touchCancel, useCapture, data);
 			break;
 			case 'gesturestart':
-				MOZTouch.unbind(node, 'touchstart', function(ev) {return this.gestureStart(ev, callback, data)}, useCapture);
+				MOZTouch.unbind(node, 'touchstart', MOZTouch.gestureStart, useCapture, data);
 			break;
 			case 'gesturechange':
-				MOZTouch.unbind(node, 'touchmove', function(ev) {return this.gestureChange(ev, callback, data)}, useCapture);
+				MOZTouch.unbind(node, 'touchmove', MOZTouch.gestureChange, useCapture, data);
 			break;
 			case 'gestureend':
-				MOZTouch.unbind(node, 'touchend', function(ev) {return this.gestureEnd(ev, callback, data)}, useCapture);
-				MOZTouch.unbind(node, 'touchcancel', function(ev) {return this.gestureEnd(ev, callback, data)}, useCapture);
+				MOZTouch.unbind(node, 'touchend', MOZTouch.gestureEnd, useCapture, data);
+				MOZTouch.unbind(node, 'touchcancel', MOZTouch.gestureEnd, useCapture, data);
 			break;
 			default:
 				$a.unbind(node, event, callback, useCapture, data);
@@ -102,73 +92,85 @@
 		}
 	};
 	
-	MOZTouch.touch_start = function(event, callback, data) {
-		
+	MOZTouch.touch_start = function(event) {
+		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'click');
+		mt.count = 0;
+		mt.event = event;
 	};
 	
-	MOZTouch.touch_move = function(event, callback, data) {
-		
+	MOZTouch.touch_move = function(event) {
+		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'click');
+		mt.count++;
 	};
 	
-	MOZTouch.touch_end = function(event, callback, data) {
-		
+	MOZTouch.touch_end = function(event, data) {
+		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'click');
+		if(mt.count < 50 && Math.abs(mt.event.pageX - event.pageX) < 20 && Math.abs(mt.event.pageY - event.pageY) < 20) {
+			return data.mozCallback(event, data);
+		}
 	};
 	
-	MOZTouch.touchDown = function(event, callback, data) {
-		console.debug('test');
+	MOZTouch.touchDown = function(event, data) {
 		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'touch');
 		mt.event = event;
-		mt.timer = window.setTimeout(MOZTouch.touchTimerCancel, mt);
-		callback(event, data);
+		mt.timer = window.setTimeout(MOZTouch.touchTimerCancel, 1000, mt);
+		return data.mozCallback(event, data);
 	};
 	
-	MOZTouch.touchMove = function(event, callback, data) {
+	MOZTouch.touchMove = function(event, data) {
 		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'touch');
 		mt.event = event;
 		if(mt.timer) {
-			window.clearTimer(mt.timer);
-			mt.timer = window.setTimeout(MOZTouch.touchTimerCancel, mt);
+			window.clearTimeout(mt.timer);
+			mt.timer = window.setTimeout(MOZTouch.touchTimerCancel, 1000, mt);
 		}
 		
-		return callback(event, data);
+		return data.mozCallback(event, data);
 	};
 	
-	MOZTouch.touchUp = function(event, callback, data) {
+	MOZTouch.touchUp = function(event, data) {
 		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'touch');
 		if(mt.timer) {
-			window.clearTimer(mt.timer);
+			window.clearTimeout(mt.timer);
+			mt.timer = null;
 		}
 		mt = {};
 		
-		callback(event, data);
+		return data.mozCallback(event, data);
 	};
 	
-	MOZTouch.touchCancel = function(event, callback, data) {
+	MOZTouch.touchCancel = function(event, data) {
 		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'touch');
 		if(mt.timer) {
-			window.clearTimer(mt.timer);
+			window.clearTimeout(mt.timer);
+			mt.timer = null;
 		}
 		mt = {};
 		
-		return callback(event, data);
+		return data.mozCallback(event, data);
 	};
 	
 	MOZTouch.touchTimerCancel = function(mt) {
-		var evt = document.createEvent("TouchEvents");
-		evt.initMouseEvent("moztouchcancel", true, true, window, 0, mt.event.clientX, mt.event.clientY, mt.event.pageX, mt.event.pageY, false, false, false, false, 0, null);
-		evt.currentTarget = mt.event.currentTarget;
-		mt.event.target.dispatchEvent(evt);
+		//var evt = document.createEvent("TouchEvent");
+		//evt.initEvent("MozTouchCancel", true, true); // , window, 0, mt.event.clientX, mt.event.clientY, mt.event.pageX, mt.event.pageY, false, false, false, false, 0, null
+		//evt.currentTarget = mt.event.currentTarget;
+		//console.debug(mt);
+		//mt.event.target.dispatchEvent(mt.event);
 	}
 	
-	MOZTouch.sidCleanup = function(ns, sid) {
-		
+	MOZTouch.sidCleanup = function(sid) {
+		if( ! MOZTouch._sids[sid]) return;
+		var mt = MOZTouch.getObjectByNamespace(MOZTouch._sids[sid], 'gesture');
+		if( ! mt) return;
+		delete mt.paths[sid];
+		delete MOZTouch._sids[sid];
 	};
 	
-	MOZTouch.gestureStart = function(event, callback, data) {
+	MOZTouch.gestureStart = function(event, data) {
 		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'gesture');
 		
-		MOZTouch.sidCleanup(mt, event.streamId);
-  	MOZTouch._sids[event.streamId] = el;
+		MOZTouch.sidCleanup(event.streamId);
+  	MOZTouch._sids[event.streamId] = event.currentTarget;
   	
   	if(mt.paths == undefined) {
 			mt.paths = {};
@@ -186,15 +188,15 @@
 			if(calc.scale != mt.scale || calc.rotation != mt.rotation) {
 				mt.scale = event.scale = calc.scale;
 	  		mt.rotation = event.rotation = calc.rotation;
-				return callback(event, data);
+				return data.mozCallback(event, data);
 			}
   	}
 	};
 	
-	MOZTouch.gestureChange = function(event, callback, data) {
+	MOZTouch.gestureChange = function(event, data) {
 		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'gesture');
 		
-  	if( ! MOZTouch._sids[event.streamId]) MOZTouch._sids[event.streamId] = el;
+  	if( ! MOZTouch._sids[event.streamId]) MOZTouch._sids[event.streamId] = event.currentTarget;
   	
   	if(mt.paths == undefined) {
 			mt.paths = {};
@@ -212,15 +214,15 @@
 			if(calc.scale != mt.scale || calc.rotation != mt.rotation) {
 				mt.scale = event.scale = calc.scale;
 	  		mt.rotation = event.rotation = calc.rotation;
-				return callback(event, data);
+				return data.mozCallback(event, data);
 			}
   	}
 	};
 	
-	MOZTouch.gestureEnd = function(event, callback, data) {
+	MOZTouch.gestureEnd = function(event, data) {
 		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'gesture');
 		
-  	if( ! MOZTouch._sids[event.streamId]) MOZTouch._sids[event.streamId] = el;
+  	if( ! MOZTouch._sids[event.streamId]) MOZTouch._sids[event.streamId] = event.currentTarget;
   	
   	if(mt.paths == undefined) {
 			mt.paths = {};
@@ -238,11 +240,11 @@
 			if(calc.scale != mt.scale || calc.rotation != mt.rotation) {
 				mt.scale = event.scale = calc.scale;
 	  		mt.rotation = event.rotation = calc.rotation;
-				return callback(event, data);
+				MOZTouch.sidCleanup(event.streamId);
+				return data.mozCallback(event, data);
 			}
   	}
-		MOZTouch.sidCleanup(mt, event.streamId);
-		mt = null;
+		MOZTouch.sidCleanup(event.streamId);
 	};
 	
 	MOZTouch.getObjectByNamespace = function(htmlNode, namespace) {
@@ -326,4 +328,4 @@
 
 		return {'rotation': deg, 'scale': scale};
 	};
-})(this.$mt);
+})(this._anyNoConflict, this._anyMtNoConflict);

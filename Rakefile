@@ -33,7 +33,7 @@ end
 
 desc "Build the docco documentation"
 task :doc do
-  sh "docco any.core.js any.mt.js"
+  sh "docco any.core.js any.mt.js any.mt.moz.js"
   sh "sed 's/@VERSION@/#{version}/' docs/any.html > docs/_any.html"
   mv 'docs/_any.html', 'docs/any.html'
 end

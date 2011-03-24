@@ -11,7 +11,7 @@
 	
 	var $mt = {};
 	
-	root.$mt = $mt;
+	root.$mt = root._anyMtNoConflict = $mt;
 	
 	$mt.VERSION = '0.0.1';
 	
@@ -25,32 +25,30 @@
 	}
 	
 	$mt.bind = function(node, event, callback, useCapture, data) {
-		if($a.isArr(node) || $a.isCol(node)) {
-			for(var i=0; i < node.length; i++) {
-				this.bind(node[i], event, callback, useCapture, data);
-			}
-			return;
-		}
 		var browser = $a.browserDetection();
-		if(this.bindHandler[browser]) {
-			return this.bindHandler[browser].bind(node, event, callback, useCapture, data);
-		} else {
-			return EmulateTouch.bind(node, event, callback, useCapture, data);
+		if( ! $a.isArr(node) && ! $a.isCol(node)) {
+			node = [node];
+		}
+		for(var i=0; i < node.length; i++) {
+			if(this.bindHandler[browser]) {
+				this.bindHandler[browser].bind(node[i], event, callback, useCapture, data);
+			} else {
+				EmulateTouch.bind(node[i], event, callback, useCapture, data);
+			}
 		}
 	};
 	
-	$mt.unbind = function(node, event, callback, useCapture) {
-		if($a.isArr(node) || $a.isCol(node)) {
-			for(var i=0; i < node.length; i++) {
-				this.unbind(node[i], event, callback, useCapture);
-			}
-			return;
-		}
+	$mt.unbind = function(node, event, callback, useCapture, data) {
 		var browser = $a.browserDetection();
-		if(this.bindHandler[browser]) {
-			return this.bindHandler[browser].bind(node, event, callback, useCapture);
-		} else {
-			return EmulateTouch.bind(node, event, callback, useCapture);
+		if( ! $a.isArr(node) && ! $a.isCol(node)) {
+			node = [node];
+		}
+		for(var i=0; i < node.length; i++) {
+			if(this.bindHandler[browser]) {
+				this.bindHandler[browser].unbind(node[i], event, callback, useCapture, data);
+			} else {
+				EmulateTouch.unbind(node[i], event, callback, useCapture, data);
+			}
 		}
 	};
 	
@@ -69,6 +67,27 @@
 		
 	}
 	
+	$mt.escapeElement = function(element) {
+		/*
+		$a.bind(element, 'click', function(event){return false;});
+		$a.bind(element, 'mousedown', function(event){$a.id('focusmaker').focus();console.debug(event);return false;});
+		$a.bind(element, 'mousemove', function(event){return false;});
+		$a.bind(element, 'mouseup', function(event){return false;});
+		$a.bind(element, 'mouseover', function(event){return false;});
+		$a.bind(element, 'mouseout', function(event){return false;});
+		$a.bind(element, 'mouseenter', function(event){return false;});
+		$a.bind(element, 'mouseleave', function(event){return false;});
+		*/
+		element.onclick = function(event){return false;};
+		element.onmousedown = function(event){document.getElementById('focusmaker').focus();return false;};
+		element.onmousemove = function(event){return false;};
+		element.onmouseup = function(event){return false;};
+		element.onmouseover = function(event){return false;};
+		element.onmouseout = function(event){return false;};
+		element.onmouseenter = function(event){return false;};
+		element.onmouseleave = function(event){return false;};
+	};
+	
 	var EmulateTouch = {
 		_mapping: {touch: 'click', touchstart: 'mousedown', touchmove: 'mousemove', touchend: 'mouseup'},
 		bind: function(node, event, callback, useCapture, data) {
@@ -79,7 +98,7 @@
 			}
 		},
 		
-		unbind: function(node, event, callback, useCapture) {
+		unbind: function(node, event, callback, useCapture, data) {
 			if(this._mapping[event] !== undefined) {
 				return $a.unbind(node, this._mapping[event], callback, useCapture, data);
 			} else {
