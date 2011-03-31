@@ -21,8 +21,8 @@ end
 desc "Use the Closure Compiler to compress any.js"
 task :build do
   { 'any-min.js' => %w{core},
-    'any.mt-min.js' => %w{mt.moz mt},
-    'any.all-min.js' => %w{core mt.moz mt}
+    'any.mt-min.js' => %w{mt mt.moz},
+    'any.all-min.js' => %w{core mt mt.moz}
   }.each do |js,components|
     min     = Closure::Compiler.new.compress(source(components))
     File.open(js, 'w') do |file|
