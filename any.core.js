@@ -493,6 +493,24 @@
 		var scale = node.matrix.scale.x != undefined ? 'scale(' + node.matrix.scale.x + ')' : '';
 		return translate + ' ' +  rotate + ' ' + scale;
 	}
+	
+	// found on https://gist.github.com/839879
+	// chrome shipped without the time arg in m10
+	$a._timeundefined = false;
+	if (window.webkitRequestAnimationFrame) {
+		webkitRequestAnimationFrame(function(time) {
+			$a._timeundefined = (time == undefined);
+		});
+	}
+
+	$a.requestAnimFrame = function(callback) {
+		if($a.isFunc(window.requestAnimationFrame)) return window.requestAnimationFrame(callback);
+		if($a.isFunc(window.webkitRequestAnimationFrame) && !$a._timeundefined) return window.webkitRequestAnimationFrame(callback);
+		if($a.isFunc(window.mozRequestAnimationFrame)) return window.mozRequestAnimationFrame(callback);
+		if($a.isFunc(window.oRequestAnimationFrame)) return window.oRequestAnimationFrame(callback);
+		if($a.isFunc(window.msRequestAnimationFrame)) return window.msRequestAnimationFrame(callback);
+		window.setTimeout(function() {console.log('bla');return callback(Date.now());}, 1000 / 60);
+	};
 
   // Private: ClassList implementation for browser
   // which have no support for it.
