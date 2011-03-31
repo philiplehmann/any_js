@@ -12,6 +12,7 @@
 	var MOZTouch = {};
 	$a.ready(function() {
 		$mt.registerBindHandler(MOZTouch, $a.FIREFOX);
+		$a.bind(document.body, 'MozTouchUp', MOZTouch.cancel_handling);
 	});
 	
 	MOZTouch._data = {};
@@ -24,6 +25,7 @@
 			case 'touch':
 				$a.bind(node, 'MozTouchDown', MOZTouch.touch_start, useCapture);
 				$a.bind(node, 'MozTouchMove', MOZTouch.touch_move, useCapture);
+				$a.bind(node, 'MozTouchCancel', MOZTouch.touch_cancel, useCapture);
 				data = $a.extend(data, {mozCallback: callback});
 				$a.bind(node, 'MozTouchUp', MOZTouch.touch_end, useCapture, data);
 			break;
@@ -68,6 +70,7 @@
 			case 'touch':
 				$a.unbind(node, 'MozTouchDown', MOZTouch.touch_start, useCapture);
 				$a.unbind(node, 'MozTouchMove', MOZTouch.touch_move, useCapture);
+				$a.unbind(node, 'MozTouchCancel', MOZTouch.touch_cancel, useCapture);
 				data = $a.extend(data, {mozCallback: callback});
 				$a.unbind(node, 'MozTouchUp', MOZTouch.touch_end, useCapture, data);
 			break;
@@ -106,6 +109,7 @@
 		}
 	};
 	
+	// handle touch(click) event
 	MOZTouch.touch_start = function(event) {
 		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'click');
 		mt.count = 0;
@@ -120,63 +124,54 @@
 	MOZTouch.touch_end = function(event, data) {
 		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'click');
 		if(mt.count < 50 && Math.abs(mt.event.pageX - event.pageX) < 20 && Math.abs(mt.event.pageY - event.pageY) < 20) {
+			MOZTouch.touch_cleanup(mt);
 			return data.mozCallback(event, data);
 		}
+		MOZTouch.touch_cleanup(mt);
+	};
+
+	MOZTouch.touch_cancel = function(event, data) {
+		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'click');
+		MOZTouch.touch_cleanup(mt);
+	}
+
+	MOZTouch.touch_cleanup = function(mt) {
+		delete mt.count;
+		delete mt.event;
+		mt = null;
 	};
 	
+	// handle normal touch events
 	MOZTouch.touchDown = function(event, data) {
-		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'touch');
-		mt.event = event;
-		mt.timer = window.setTimeout(MOZTouch.touchTimerCancel, 1000, mt);
+		MOZTouch._sids[event.streamId] = event.currentTarget;
 		return data.mozCallback(event, data);
 	};
 	
 	MOZTouch.touchMove = function(event, data) {
-		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'touch');
-		mt.event = event;
-		if(mt.timer) {
-			window.clearTimeout(mt.timer);
-			mt.timer = window.setTimeout(MOZTouch.touchTimerCancel, 1000, mt);
-		}
-		
+		MOZTouch._sids[event.streamId] = event.currentTarget;
 		return data.mozCallback(event, data);
 	};
 	
 	MOZTouch.touchUp = function(event, data) {
-		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'touch');
-		if(mt.timer) {
-			window.clearTimeout(mt.timer);
-			mt.timer = null;
-		}
-		mt = {};
-		
+		delete MOZTouch._sids[event.streamId];
 		return data.mozCallback(event, data);
 	};
 	
-	MOZTouch.touchCancel = function(event, data) {
-		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'touch');
-		if(mt.timer) {
-			window.clearTimeout(mt.timer);
-			mt.timer = null;
+	// called from the body
+	MOZTouch.cancel_handling = function(event) {
+		if(MOZTouch._sids[event.streamId] != undefined) {
+			console.debug('trigger moztouchcancel');
+			MOZTouch._sids[event.streamId].dispatchEvent(event);
+			MOZTouch.sidCleanup(event.streamId);
 		}
-		mt = {};
-		
-		return data.mozCallback(event, data);
-	};
-	
-	MOZTouch.touchTimerCancel = function(mt) {
-		//var evt = document.createEvent("TouchEvent");
-		//evt.initEvent("MozTouchCancel", true, true); // , window, 0, mt.event.clientX, mt.event.clientY, mt.event.pageX, mt.event.pageY, false, false, false, false, 0, null
-		//evt.currentTarget = mt.event.currentTarget;
-		//console.debug(mt);
-		//mt.event.target.dispatchEvent(mt.event);
 	}
 	
+	// clean the local information of the touch events
 	MOZTouch.sidCleanup = function(sid) {
 		if( ! MOZTouch._sids[sid]) return;
 		var mt = MOZTouch.getObjectByNamespace(MOZTouch._sids[sid], 'gesture');
 		if( ! mt) return;
-		delete mt.paths[sid];
+		if(mt.paths != undefined && mt.paths[sid] != undefined) delete mt.paths[sid];
 		delete MOZTouch._sids[sid];
 	};
 	

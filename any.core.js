@@ -136,6 +136,41 @@
 	// callback - function
 	// useCapture - 
 	// data - whatever
+	$a._data_functions = {};
+	$a._set_data_function = function(node, event, callback, useCapture, data, func) {
+		if($a._data_functions[node] == undefined) $a._data_functions[node] = {};
+		if($a._data_functions[node][event] == undefined) $a._data_functions[node][event] = {};
+		if($a._data_functions[node][event][callback] == undefined) $a._data_functions[node][event][callback] = {};
+		if($a._data_functions[node][event][callback][useCapture] == undefined) $a._data_functions[node][event][callback][useCapture] = {};
+		$a._data_functions[node][event][callback][useCapture][data] = func;
+	};
+	
+	$a._get_data_function = function(node, event, callback, useCapture, data) {
+		if($a._has_data_function(node, event, callback, useCapture, data)) {
+			return $a._data_functions[node][event][callback][useCapture][data];
+		} else {
+			var func = function(ev) {return callback(ev, data)};
+			$a._set_data_function(node, event, callback, useCapture, data, func);
+			return func;
+		}
+	};
+	
+	$a._has_data_function = function(node, event, callback, useCapture, data) {
+		try {
+			if(
+					$a._data_functions[node] != undefined && 
+					$a._data_functions[node][event] != undefined &&
+					$a._data_functions[node][event][callback][useCapture] != undefined &&
+					$a._data_functions[node][event][callback][useCapture][data] != undefined
+			) {
+				return true;
+			}
+		} catch(e) {
+			return false;
+		}
+		return false;
+	};
+	
   $a.bind = function(node, event, callback, useCapture, data) {
 		useCapture = useCapture !== true ? false : true;
 		
@@ -148,13 +183,13 @@
 		
 		if (this.isFunc(node.addEventListener)) {
 			if(data) {
-				return node.addEventListener(event, function(ev) {return callback(ev, data)}, useCapture);
+				return node.addEventListener(event, $a._get_data_function(node, event, callback, useCapture, data), useCapture);
 			} else {
 				return node.addEventListener(event, callback, useCapture);
 			}
 		} else if (this.isFunc(node.attachEvent)) {
 			if(data) {
-				return node.attachEvent("on" + event, function(ev) {return callback(ev, data)});
+				return node.attachEvent("on" + event, $a._get_data_function(node, event, callback, useCapture, data));
 			} else {
 				return node.attachEvent("on" + event, callback);
 			}
@@ -174,13 +209,13 @@
 		
 		if (this.isFunc(node.removeEventListener)) {
 			if(data) {
-				return node.removeEventListener(event, function(ev) {return callback(ev, data)}, useCapture);
+				return node.removeEventListener(event, $a._get_data_function(node, event, callback, useCapture, data), useCapture);
 			} else {
 				return node.removeEventListener(event, callback, useCapture);
 			}
     } else if (this.isFunc(node.detachEvent)) {
 			if(data) {
-				return node.detachEvent("on" + event, function(ev) {return callback(ev, data)});
+				return node.detachEvent("on" + event, $a._get_data_function(node, event, callback, useCapture, data));
 			} else {
 				return node.detachEvent("on" + event, callback);
 			}
