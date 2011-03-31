@@ -34,11 +34,6 @@
   // 
   //
 	
-	// execute callback when dom is ready
-  $a.ready = function(loadedCallback) {
-		this.bind(document, "DOMContentLoaded", loadedCallback, false);
-  };
-	
 	$a.CHROME = 'chrome';
 	$a.FIREFOX = 'firefox';
 	$a.FENNEC = 'fennec';
@@ -169,12 +164,14 @@
   // Remove event listener from node.
   $a.unbind = function(node, event, callback, useCapture, data) {
 		useCapture = useCapture !== true ? false : true;
+		
 		if(this.isArr(node) || this.isCol(node)) {
 			for(var i=0; i < node.length; i++) {
-				this.unbind(node[i], event, callback, useCapture);
+				this.unbind(node[i], event, callback, useCapture, data);
 			}
 			return;
 		}
+		
 		if (this.isFunc(node.removeEventListener)) {
 			if(data) {
 				return node.removeEventListener(event, function(ev) {return callback(ev, data)}, useCapture);
@@ -384,27 +381,40 @@
 
     if(animationObj.property != undefined) {
       node.style.webkitTransitionProperty = animationObj.property;
-      node.style.mozTransitionProperty = animationObj.property;
+      node.style.MozTransitionProperty = animationObj.property;
+      node.style.oTransitionProperty = animationObj.property;
+      node.style.transitionProperty = animationObj.property;
     }
     if(animationObj.duration != undefined) {
       node.style.webkitTransitionDuration = animationObj.duration;
-      node.style.mozTransitionDuration = animationObj.duration;
+      node.style.MozTransitionDuration = animationObj.duration;
+      node.style.oTransitionDuration = animationObj.duration;
+      node.style.transitionDuration = animationObj.duration;
     }
     if(animationObj.timingFunction != undefined) {
       node.style.webkitTransitionTimingFunction = animationObj.timingFunction;
-      node.style.mozTransitionTimingFunction = animationObj.timingFunction;
+      node.style.MozTransitionTimingFunction = animationObj.timingFunction;
+      node.style.oTransitionTimingFunction = animationObj.timingFunction;
+      node.style.transitionTimingFunction = animationObj.timingFunction;
     }
     if(animationObj.delay != undefined) {
       node.style.webkitTransitionDelay = animationObj.delay;
-      node.style.mozTransitionDelay = animationObj.delay;
+      node.style.MozTransitionDelay = animationObj.delay;
+      node.style.oTransitionDelay = animationObj.delay;
+      node.style.transitionDelay = animationObj.delay;
     }
     if(cleanup) {
       this.bind(node, 'webkitTransitionEnd', this._animationCleanup);
       this.bind(node, 'mozTransitionEnd', this._animationCleanup);
+      this.bind(node, 'oTransitionEnd', this._animationCleanup);
+      this.bind(node, 'transitionend', this._animationCleanup);
     }
     if($a.isFunc(callback)) {
       this.bind(node, 'webkitTransitionEnd', callback);
       this.bind(node, 'mozTransitionEnd', callback);
+      this.bind(node, 'oTransitionEnd', callback);
+      this.bind(node, 'transitionend', callback);
+
     }
     this.css(node, cssObj);
   };
@@ -436,7 +446,7 @@
 				  return node.matrix.rotate;
 				break;
 				default:
-				 return null;
+					return this._transform(node);
 				break;
 			}
 		} else {
@@ -462,10 +472,7 @@
 					if(setterZ != undefined) node.matrix.rotate.z = setterZ;
 				break;
 			}
-			var rotate = node.matrix.rotate.x != undefined ? 'rotate(' + node.matrix.rotate.x + 'deg)' : '';
-			var translate = (node.matrix.translate.x != undefined && node.matrix.translate.y != undefined) ? 'translate(' + node.matrix.translate.x + 'px,' + node.matrix.translate.y + 'px)' : '';
-			var scale = node.matrix.scale.x != undefined ? 'scale(' + node.matrix.scale.x + ')' : '';
-			var style =  translate + ' ' +  rotate + ' ' + scale;
+			var style = this._transform(node);
 			if(returnValue !== true) {
 				node.style.webkitTransform = style;
 				node.style.MozTransform = style;
@@ -477,6 +484,14 @@
 			return;
 		}
 		return null;
+	}
+	
+	$a._transform = function(node) {
+		if(node == undefined || node.matrix == undefined) return '';
+		var rotate = node.matrix.rotate.x != undefined ? 'rotate(' + node.matrix.rotate.x + 'deg)' : '';
+		var translate = (node.matrix.translate.x != undefined && node.matrix.translate.y != undefined) ? 'translate(' + node.matrix.translate.x + 'px,' + node.matrix.translate.y + 'px)' : '';
+		var scale = node.matrix.scale.x != undefined ? 'scale(' + node.matrix.scale.x + ')' : '';
+		return translate + ' ' +  rotate + ' ' + scale;
 	}
 
   // Private: ClassList implementation for browser
