@@ -509,7 +509,7 @@
 		if($a.isFunc(window.mozRequestAnimationFrame)) return window.mozRequestAnimationFrame(callback);
 		if($a.isFunc(window.oRequestAnimationFrame)) return window.oRequestAnimationFrame(callback);
 		if($a.isFunc(window.msRequestAnimationFrame)) return window.msRequestAnimationFrame(callback);
-		window.setTimeout(function() {console.log('bla');return callback(Date.now());}, 1000 / 60);
+		window.setTimeout(return callback(Date.now());}, 1000 / 60);
 	};
 
   // Private: ClassList implementation for browser
