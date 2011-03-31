@@ -503,14 +503,12 @@
 		});
 	}
 
-	$a.requestAnimFrame = function(callback) {
-		if($a.isFunc(window.requestAnimationFrame)) return window.requestAnimationFrame(callback);
-		if($a.isFunc(window.webkitRequestAnimationFrame) && !$a._timeundefined) return window.webkitRequestAnimationFrame(callback);
-		if($a.isFunc(window.mozRequestAnimationFrame)) return window.mozRequestAnimationFrame(callback);
-		if($a.isFunc(window.oRequestAnimationFrame)) return window.oRequestAnimationFrame(callback);
-		if($a.isFunc(window.msRequestAnimationFrame)) return window.msRequestAnimationFrame(callback);
-		window.setTimeout(return callback(Date.now());}, 1000 / 60);
-	};
+	if($a.isFunc(window.requestAnimationFrame)) $a.requestAnimationFrame = function(callback) {return window.requestAnimationFrame(callback);};
+	else if($a.isFunc(window.webkitRequestAnimationFrame) && !$a._timeundefined) $a.requestAnimationFrame = function(callback) {return window.webkitRequestAnimationFrame(callback);};
+	else if($a.isFunc(window.mozRequestAnimationFrame)) $a.requestAnimationFrame = function(callback) {return window.mozRequestAnimationFrame(callback);};
+	else if($a.isFunc(window.oRequestAnimationFrame)) $a.requestAnimationFrame = function(callback) {return window.oRequestAnimationFrame(callback);};
+	else if($a.isFunc(window.msRequestAnimationFrame)) $a.requestAnimationFrame = function(callback) {return window.msRequestAnimationFrame(callback);};
+	else $a.requestAnimationFrame = function(callback) {window.setTimeout(callback, 1000 / 60, Date.now());};
 
   // Private: ClassList implementation for browser
   // which have no support for it.
