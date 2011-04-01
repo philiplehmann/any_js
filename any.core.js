@@ -456,7 +456,7 @@
 
   // Private: reset animation properties after transisition ended.
   $a._animationCleanup = function(event) {
-    $a.animate(event.currentTarget, {property: null, duration: null, timingFunction: null, delay: null}, {}, false);
+    $a.animate(event.currentTarget, {property: '', duration: '', timingFunction: '', delay: ''}, {}, false);
   };
 
 	// todo

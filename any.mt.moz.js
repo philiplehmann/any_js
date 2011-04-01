@@ -172,6 +172,8 @@
 		var mt = MOZTouch.getObjectByNamespace(MOZTouch._sids[sid], 'gesture');
 		if( ! mt) return;
 		if(mt.paths != undefined && mt.paths[sid] != undefined) delete mt.paths[sid];
+		if(mt.rotationCalc != undefined) delete mt.rotationCalc;
+		mt = null;
 		delete MOZTouch._sids[sid];
 	};
 	
@@ -219,7 +221,6 @@
   	}
   	if (sids.length > 1) {
   		var calc = MOZTouch._calculate_for_event(mt.paths[sids[0]], mt.paths[sids[1]], mt);
-	  	//console.debug(calc);
 			if(calc.scale != mt.scale || calc.rotation != mt.rotation) {
 				mt.scale = event.scale = calc.scale;
 	  		mt.rotation = event.rotation = calc.rotation;

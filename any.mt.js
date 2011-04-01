@@ -68,16 +68,6 @@
 	}
 	
 	$mt.escapeElement = function(element) {
-		/*
-		$a.bind(element, 'click', function(event){return false;});
-		$a.bind(element, 'mousedown', function(event){$a.id('focusmaker').focus();console.debug(event);return false;});
-		$a.bind(element, 'mousemove', function(event){return false;});
-		$a.bind(element, 'mouseup', function(event){return false;});
-		$a.bind(element, 'mouseover', function(event){return false;});
-		$a.bind(element, 'mouseout', function(event){return false;});
-		$a.bind(element, 'mouseenter', function(event){return false;});
-		$a.bind(element, 'mouseleave', function(event){return false;});
-		*/
 		element.onclick = function(event){return false;};
 		element.onmousedown = function(event){document.getElementById('focusmaker').focus();return false;};
 		element.onmousemove = function(event){return false;};
