@@ -6,6 +6,12 @@
 //     For all details and documentation:
 //     TODO: gh-pages
 
+// touchevent documentation from apple
+// http://developer.apple.com/library/safari/#documentation/UserExperience/Reference/TouchEventClassReference/TouchEvent/TouchEvent.html#//apple_ref/javascript/cl/TouchEvent
+
+// Touch documentation from apple
+// http://developer.apple.com/library/safari/#documentation/UserExperience/Reference/TouchClassReference/Touch/Touch.html#//apple_ref/javascript/cl/Touch
+
 (function($a) {
 	var root = this;
 	
@@ -66,6 +72,109 @@
 	$mt.swipe = function(obj) {
 		
 	}
+	
+	$mt.swipeStart = function(event, data) {
+		
+	};
+	
+	$mt.swipeMove = function(event, data) {
+		
+	};
+	
+	$mt.swipeEnd = function(event, data) {
+		
+	};
+	
+	// handlers: touchStartCallbackStart, touchStartCallbackEnd, touchMoveCallbackStart, touchMoveCallbackEnd, touchEndCallbackStart, touchEndCallbackEnd
+	// $mt.moveGesture(element, {gestureMoveCallbackEnd: function(event) {alert(event.rotation;)}});
+	$mt.registerMove = function(element, handlers) {
+		if(element._move_handlers != undefined) return;
+		element._move_handlers = handlers;
+		$mt.bind(element, 'touchstart', $mt.touchStart, false, handlers);
+		$mt.bind(element, 'touchmove', $mt.touchStart, false, handlers);
+		$mt.bind(element, 'touchend', $mt.touchStart, false, handlers);
+	};
+	
+	$mt.unregisterMove = function(element) {
+		$mt.unbind(element, 'touchstart', $mt.touchStart, false, element._move_handlers);
+		$mt.unbind(element, 'touchmove', $mt.touchStart, false, element._move_handlers);
+		$mt.unbind(element, 'touchend', $mt.touchStart, false, element._move_handlers);
+		delete element._move_handlers;
+	};
+	
+	$mt.touchStart = function(event, data) {
+		if($a.isFunc(data.touchStartCallbackStart)) {
+			data.touchStartCallbackStart(event);
+		}
+		
+		event.preventDefault();
+		var el = event.currentTarget;
+		el.style.zIndex = ProjectCount += 1;
+		el.touchX = event.pageX;
+	  el.touchY = event.pageY;
+		el.touchSID = event.streamId;
+		
+		if($a.isFunc(data.touchStartCallbackEnd)) {
+			data.touchStartCallbackEnd(event);
+		}
+	};
+	
+	$mt.touchMove = function(event, data) {
+		if($a.isFunc(data.touchMoveCallbackStart)) {
+			data.touchMoveCallbackStart(event);
+		}
+		
+		var el = event.currentTarget;
+		if(el.gesture || el.touchSID != event.streamId || (isNaN(el.touchX) || isNaN(el.touchY)) || el.touchX == undefined || el.touchY == undefined) {
+			return;
+		}
+
+		var translate = $a.transform(el, 'translate');
+		var translateX = translate.x + (event.pageX - el.touchX);
+		var translateY = translate.y + (event.pageY - el.touchY);
+		$a.requestAnimationFrame(function() {
+			$a.transform(el, 'translate', translateX, translateY);
+		});
+		
+		el.touchX = event.pageX;
+		el.touchY = event.pageY;
+		
+		if($a.isFunc(data.touchMoveCallbackEnd)) {
+			data.touchMoveCallbackEnd(event);
+		}
+	};
+	
+	$mt.touchEnd = function(event, data) {
+		if($a.isFunc(data.touchEndCallbackStart)) {
+			data.touchMoveCallbackStart(event);
+		}
+		
+		if($a.isFunc(data.touchEndCallbackEnd)) {
+			data.touchMoveCallbackEnd(event);
+		}
+	};
+	
+	// handlers: gestureStartCallbackStart, gestureStartCallbackEnd, gestureMoveCallbackStart, gestureMoveCallbackEnd, gestureEndCallbackStart, gestureEndCallbackEnd
+	// $mt.registerGesture(element, {gestureMoveCallbackEnd: function(event) {alert(event.rotation;)}});
+	$mt.registerGesture = function(element, handlers) {
+		
+	};
+	
+	$mt.unregisterGesture = function(element, handlers) {
+		
+	};
+	
+	$mt.gestureStart = function(event, data) {
+		
+	};
+	
+	$mt.gestureMove = function(event, data) {
+		
+	};
+	
+	$mt.gestureEnd = function(event, data) {
+		
+	};
 	
 	$mt.escapeElement = function(element) {
 		element.onclick = function(event){return false;};

@@ -12,7 +12,11 @@
 	var MOZTouch = {};
 	$a.ready(function() {
 		$mt.registerBindHandler(MOZTouch, $a.FIREFOX);
-		$a.bind(document.body, 'MozTouchUp', MOZTouch.cancel_handling);
+		var background = $a.first('background');
+		if(background) {
+			$mt.escapeElement(background);
+			$a.bind(background, 'MozTouchUp', MOZTouch.cancel_handling);
+		}
 	});
 	
 	MOZTouch._data = {};
@@ -157,11 +161,17 @@
 		return data.mozCallback(event, data);
 	};
 	
+	MOZTouch.touchCancel = function(event, data) {
+		delete MOZTouch._sids[event.streamId];
+		return data.mozCallback(event, data);
+	};
+	
 	// called from the body
 	MOZTouch.cancel_handling = function(event) {
 		if(MOZTouch._sids[event.streamId] != undefined) {
-			console.debug('trigger moztouchcancel');
-			MOZTouch._sids[event.streamId].dispatchEvent(event);
+			var ev = document.createEvent('MouseEvents');
+			ev.initEvent("MozTouchCancel", true, false);
+			MOZTouch._sids[event.streamId].dispatchEvent(ev);
 			MOZTouch.sidCleanup(event.streamId);
 		}
 	}

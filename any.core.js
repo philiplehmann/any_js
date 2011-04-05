@@ -22,6 +22,9 @@
   // Internal save object, so we can asume `$a` is available in
   // our context.
   var $a = {};
+	
+	// namespace for some intern functions
+	var $event_handler = {};
 
   // Export our methods as `$a` in `root` (i.e. `window`).
   root.$a = root._anyNoConflict = $a;
@@ -101,6 +104,44 @@
     }
     return obj1;
   };
+	
+	// helper function for compareObj
+	$a._countProps = function(obj) {
+	    var count = 0;
+	    for (k in obj) {
+	        if (obj.hasOwnProperty(k)) {
+	            count++;
+	        }
+	    }
+	    return count;
+	};
+
+	// compare two objects
+	$a.compareObj = function(v1, v2) {
+		if (typeof(v1) !== typeof(v2)) {
+			return false;
+		}
+
+		if (typeof(v1) === "function") {
+			return v1.toString() === v2.toString();
+		}
+
+		if (v1 instanceof Object && v2 instanceof Object) {
+			if ($a._countProps(v1) !== $a._countProps(v2)) {
+				return false;
+			}
+			var r = true;
+			for (k in v1) {
+				r = $a.compareObj(v1[k], v2[k]);
+				if (!r) {
+					return false;
+				}
+			}
+			return true;
+		} else {
+			return v1 === v2;
+		}
+	}
 
   // ### $a.json("str"), $a.json(object)
   // Convert an object to a JSON string, or parse a string
@@ -136,39 +177,65 @@
 	// callback - function
 	// useCapture - 
 	// data - whatever
-	$a._data_functions = {};
-	$a._set_data_function = function(node, event, callback, useCapture, data, func) {
-		if($a._data_functions[node] == undefined) $a._data_functions[node] = {};
-		if($a._data_functions[node][event] == undefined) $a._data_functions[node][event] = {};
-		if($a._data_functions[node][event][callback] == undefined) $a._data_functions[node][event][callback] = {};
-		if($a._data_functions[node][event][callback][useCapture] == undefined) $a._data_functions[node][event][callback][useCapture] = {};
-		$a._data_functions[node][event][callback][useCapture][data] = func;
+	$event_handler._get_data_function_id = 0;
+	$event_handler._set_data_function = function(node, event, callback, useCapture, data, func) {
+		if( ! callback.aid) callback.aid = $event_handler._get_data_function_id++;
+		if(node._data_functions == undefined) node._data_functions = {};
+		if(node._function_data == undefined) node._function_data = {counter: 0};
+		if(node._data_functions[event] == undefined) node._data_functions[event] = {};
+		if(node._data_functions[event][callback.aid] == undefined) node._data_functions[event][callback.aid] = {};
+		if(node._data_functions[event][callback.aid][useCapture] == undefined) node._data_functions[event][callback.aid][useCapture] = {data: {}};
+		node._data_functions[event][callback.aid][useCapture][$event_handler._get_data_id(node._data_functions[event][callback.aid][useCapture], data)] = func;
 	};
-	
-	$a._get_data_function = function(node, event, callback, useCapture, data) {
-		if($a._has_data_function(node, event, callback, useCapture, data)) {
-			return $a._data_functions[node][event][callback][useCapture][data];
+	$event_handler._get_data_function = function(node, event, callback, useCapture, data) {
+		if( ! callback.aid) callback.aid = $event_handler._get_data_function_id++;
+		
+		var has = $event_handler._has_data_function(node, event, callback, useCapture, data);
+		if(has !== false) {
+			return has;
 		} else {
 			var func = function(ev) {return callback(ev, data)};
-			$a._set_data_function(node, event, callback, useCapture, data, func);
+			$event_handler._set_data_function(node, event, callback, useCapture, data, func);
 			return func;
 		}
 	};
 	
-	$a._has_data_function = function(node, event, callback, useCapture, data) {
+	$event_handler._remove_data_function = function(node, event, callback, useCapture, data) {
+		if($event_handler._has_data_function(node, event, callback, useCapture, data)) {
+			var data_id = $event_handler._get_data_id(node._data_functions[event][callback.aid][useCapture], data);
+			delete node._data_functions[event][callback.aid][useCapture][data_id];
+		}
+	};
+	
+	$event_handler._has_data_function = function(node, event, callback, useCapture, data) {
+		if( ! callback.aid) callback.aid = $event_handler._get_data_function_id++;
 		try {
 			if(
-					$a._data_functions[node] != undefined && 
-					$a._data_functions[node][event] != undefined &&
-					$a._data_functions[node][event][callback][useCapture] != undefined &&
-					$a._data_functions[node][event][callback][useCapture][data] != undefined
+					node._data_functions != undefined && 
+					node._data_functions[event] != undefined &&
+					node._data_functions[event][callback.aid][useCapture] != undefined
 			) {
-				return true;
+				var data_id = $event_handler._get_data_id(node._data_functions[event][callback.aid][useCapture], data);
+				if(node._data_functions[event][callback.aid][useCapture][data_id] != undefined) {
+					return node._data_functions[event][callback.aid][useCapture][data_id];
+				}
 			}
 		} catch(e) {
 			return false;
 		}
 		return false;
+	};
+	
+	$event_handler._get_data_index = 0;
+	$event_handler._get_data_id = function(namespace, data) {
+		for(var key in namespace.data) {
+			if(key == 'data' && $event_handler.compareObj(namespace.data[key], data)) {
+				return key
+			}
+		}
+		var id = $event_handler._get_data_index++;
+		namespace.data[id] = data;
+		return id;
 	};
 	
   $a.bind = function(node, event, callback, useCapture, data) {
@@ -183,13 +250,13 @@
 		
 		if (this.isFunc(node.addEventListener)) {
 			if(data) {
-				return node.addEventListener(event, $a._get_data_function(node, event, callback, useCapture, data), useCapture);
+				return node.addEventListener(event, $event_handler._get_data_function(node, event, callback, useCapture, data), useCapture);
 			} else {
 				return node.addEventListener(event, callback, useCapture);
 			}
 		} else if (this.isFunc(node.attachEvent)) {
 			if(data) {
-				return node.attachEvent("on" + event, $a._get_data_function(node, event, callback, useCapture, data));
+				return node.attachEvent("on" + event, $event_handler._get_data_function(node, event, callback, useCapture, data));
 			} else {
 				return node.attachEvent("on" + event, callback);
 			}
@@ -209,13 +276,17 @@
 		
 		if (this.isFunc(node.removeEventListener)) {
 			if(data) {
-				return node.removeEventListener(event, $a._get_data_function(node, event, callback, useCapture, data), useCapture);
+				var func = $event_handler._get_data_function(node, event, callback, useCapture, data);
+				$event_handler._remove_data_function(node, event, callback, useCapture, data);
+				return node.removeEventListener(event, func, useCapture);
 			} else {
 				return node.removeEventListener(event, callback, useCapture);
 			}
     } else if (this.isFunc(node.detachEvent)) {
 			if(data) {
-				return node.detachEvent("on" + event, $a._get_data_function(node, event, callback, useCapture, data));
+				var func = $event_handler._get_data_function(node, event, callback, useCapture, data);
+				$event_handler._remove_data_function(node, event, callback, useCapture, data);
+				return node.detachEvent("on" + event, func);
 			} else {
 				return node.detachEvent("on" + event, callback);
 			}
@@ -438,25 +509,33 @@
       node.style.oTransitionDelay = animationObj.delay;
       node.style.transitionDelay = animationObj.delay;
     }
+		
+		if($a.isFunc(callback)) {
+			node._animation_callback = callback;
+		}
+		
     if(cleanup) {
       this.bind(node, 'webkitTransitionEnd', this._animationCleanup);
       this.bind(node, 'mozTransitionEnd', this._animationCleanup);
       this.bind(node, 'oTransitionEnd', this._animationCleanup);
       this.bind(node, 'transitionend', this._animationCleanup);
     }
-    if($a.isFunc(callback)) {
-      this.bind(node, 'webkitTransitionEnd', callback);
-      this.bind(node, 'mozTransitionEnd', callback);
-      this.bind(node, 'oTransitionEnd', callback);
-      this.bind(node, 'transitionend', callback);
 
-    }
     this.css(node, cssObj);
   };
 
   // Private: reset animation properties after transisition ended.
   $a._animationCleanup = function(event) {
     $a.animate(event.currentTarget, {property: '', duration: '', timingFunction: '', delay: ''}, {}, false);
+
+		$a.unbind(event.currentTarget, 'webkitTransitionEnd', $a._animationCleanup);
+    $a.unbind(event.currentTarget, 'mozTransitionEnd', $a._animationCleanup);
+    $a.unbind(event.currentTarget, 'oTransitionEnd', $a._animationCleanup);
+    $a.unbind(event.currentTarget, 'transitionend', $a._animationCleanup);
+
+		if($a.isFunc(event.currentTarget._animation_callback)) {
+			event.currentTarget._animation_callback(event);
+		}
   };
 
 	// todo
