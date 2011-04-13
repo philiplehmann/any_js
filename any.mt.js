@@ -63,18 +63,35 @@
 	 * obj {
 	 * 	 node - HTMLElement 
 	 *   type - horizontal | vertical
-	 *   onSwipeStart - 
+	 *   length
 	 *   startAfter - default 20px
+	 *   onSwipeStart
 	 *   onSwipeMove, 
 	 *   onSwipeEnd
 	 * }
 	 */
 	$mt.swipe = function(obj) {
+		if(obj.node == undefined) throw 'no node defined';
+		if(obj.length == undefined) throw 'no length defined';
+		if(obj.type == undefined) obj.type = 'horizontal';
+		if(obj.speed == undefined) obj.speed = 20;
 		
+		$mt.bind(obj.node, 'touchstart', $mt.swipeStart);
+		$mt.bind(obj.node, 'touchmove', $mt.swipeMove);
+		$mt.bind(ojb.node, 'touchend', $mt.swipeEnd);
+	};
+	
+	$mt.unswipe = function(node, type) {
+		$mt.unbind(obj.node, 'touchstart', $mt.swipeStart);
+		$mt.unbind(obj.node, 'touchmove', $mt.swipeMove);
+		$mt.unbind(obj.node, 'touchend', $mt.swipeEnd);
 	}
 	
 	$mt.swipeStart = function(event, data) {
-		
+		var el = event.currentTarget;
+		if(el._swipe == undefined) el._swipe = {};
+		var swipe = el._swipe;
+		swipe.tsStart = Date.now();
 	};
 	
 	$mt.swipeMove = function(event, data) {
@@ -83,6 +100,28 @@
 	
 	$mt.swipeEnd = function(event, data) {
 		
+	};
+	
+	$mt.draw = {};
+	$mt.draw.items = [];
+	$mt.draw.called = false;
+	$mt.draw.set = function(element) {
+		if($mt.draw.items.indexOf(element) === -1) {
+			$mt.draw.items.push(element);
+		}
+		$mt.draw.called = true;
+		$a.requestAnimationFrame($mt.draw.run);
+	};
+	
+	$mt.draw.run = function(ts) {
+		$mt.draw.items.forEach(function(element, i) {
+			var style = $a.transform(element);
+			element.style.mozTransform = style;
+			element.style.webkitTransform = style;
+			element.style.oTransform = style;
+			element.style.transform = style;
+		});
+		$mt.draw.called = false;
 	};
 	
 	// handlers: touchStartCallbackStart, touchStartCallbackEnd, touchMoveCallbackStart, touchMoveCallbackEnd, touchEndCallbackStart, touchEndCallbackEnd
@@ -146,11 +185,17 @@
 	
 	$mt.touchEnd = function(event, data) {
 		if($a.isFunc(data.touchEndCallbackStart)) {
-			data.touchMoveCallbackStart(event);
+			data.touchEndCallbackStart(event);
 		}
 		
+		var el = event.currentTarget;
+		if(event.streamId != el.touchSID) return;
+		delete el.touchX;
+		delete el.touchY;
+		delete el.touchSID;
+		
 		if($a.isFunc(data.touchEndCallbackEnd)) {
-			data.touchMoveCallbackEnd(event);
+			data.touchEndCallbackEnd(event);
 		}
 	};
 	
@@ -160,20 +205,73 @@
 		
 	};
 	
-	$mt.unregisterGesture = function(element, handlers) {
-		
+	$mt.unregisterGesture = function(element, rotate, scale, handlers) {
+		if(handlers == undefined) handlers = {};
+		handlers.rotate = rotate || false;
+		handlers.scale = scale || false;
 	};
 	
 	$mt.gestureStart = function(event, data) {
+		if($a.isFunc(data.gestureStartCallbackStart)) {
+			data.gestureStartCallbackStart(event);
+		}
 		
+		var el = event.currentTarget;
+		el.scale = $a.transform(el, 'scale').x || 1;
+		el.rotation = $a.transform(el, 'rotate').x || 0;
+		el.gesture = true;
+		
+		if($a.isFunc(data.gestureStartCallbackEnd)) {
+			data.gestureStartCallbackEnd(event);
+		}
 	};
 	
 	$mt.gestureMove = function(event, data) {
+		if($a.isFunc(data.gestureStartCallbackStart)) {
+			data.gestureStartCallbackStart(event);
+		}
 		
+		var el = event.currentTarget;
+		if(el.running === true) return;
+		el.running = true;
+
+		var change = false;
+		var rot = 0;
+		if(data.rotate && el.rotation !== undefined) {
+			rot = (el.rotation + event.rotation) % 360;
+			change = true;
+			$a.transform(el, 'rotate', rot, undefined, undefined, true);
+		}
+		var scaleRes = 0;
+		if(data.scale && el.scale !== undefined) {
+			scaleRes = el.scale * event.scale;
+			change = true;
+			$a.transform(el, 'scale', scaleRes, undefined, undefined, true);
+		}
+		
+		if(change) {
+			$mt.draw.set(el);
+		}
+		
+		if($a.isFunc(data.gestureStartCallbackEnd)) {
+			data.gestureStartCallbackEnd(event, rot, scaleRes);
+		}
+		el.running = false;
 	};
 	
 	$mt.gestureEnd = function(event, data) {
+		if($a.isFunc(data.gestureEndCallbackStart)) {
+			data.gestureEndCallbackStart(event);
+		}
 		
+		var el = event.currentTarget;
+		el.scale = undefined;
+		el.rotation = undefined;
+		delete el.gesture;
+		
+		if($a.isFunc(data.gestureEndCallbackEnd)) {
+			data.gestureEndCallbackEnd(event);
+		}
 	};
 	
 	$mt.escapeElement = function(element) {
