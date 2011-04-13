@@ -611,18 +611,18 @@
 	// found on https://gist.github.com/839879
 	// chrome shipped without the time arg in m10
 	$a._timeundefined = false;
-	if (window.webkitRequestAnimationFrame) {
+	if (root.webkitRequestAnimationFrame) {
 		webkitRequestAnimationFrame(function(time) {
 			$a._timeundefined = (time == undefined);
 		});
 	}
 
-	if($a.isFunc(window.requestAnimationFrame)) $a.requestAnimationFrame = function(callback) {return window.requestAnimationFrame(callback);};
-	else if($a.isFunc(window.webkitRequestAnimationFrame) && !$a._timeundefined) $a.requestAnimationFrame = function(callback) {return window.webkitRequestAnimationFrame(callback);};
-	else if($a.isFunc(window.mozRequestAnimationFrame)) $a.requestAnimationFrame = function(callback) {return window.mozRequestAnimationFrame(callback);};
-	else if($a.isFunc(window.oRequestAnimationFrame)) $a.requestAnimationFrame = function(callback) {return window.oRequestAnimationFrame(callback);};
-	else if($a.isFunc(window.msRequestAnimationFrame)) $a.requestAnimationFrame = function(callback) {return window.msRequestAnimationFrame(callback);};
-	else $a.requestAnimationFrame = function(callback) {window.setTimeout(callback, 1000 / 60, Date.now());};
+	if($a.isFunc(root.requestAnimationFrame)) $a.requestAnimationFrame = function(callback) {return root.requestAnimationFrame(callback);};
+	else if($a.isFunc(root.webkitRequestAnimationFrame) && !$a._timeundefined) $a.requestAnimationFrame = function(callback) {return root.webkitRequestAnimationFrame(callback);};
+	else if($a.isFunc(root.mozRequestAnimationFrame)) $a.requestAnimationFrame = function(callback) {return root.mozRequestAnimationFrame(callback);};
+	else if($a.isFunc(root.oRequestAnimationFrame)) $a.requestAnimationFrame = function(callback) {return root.oRequestAnimationFrame(callback);};
+	else if($a.isFunc(root.msRequestAnimationFrame)) $a.requestAnimationFrame = function(callback) {return root.msRequestAnimationFrame(callback);};
+	else $a.requestAnimationFrame = function(callback) {root.setTimeout(callback, 1000 / 60, Date.now());};
 
   // Private: ClassList implementation for browser
   // which have no support for it.
