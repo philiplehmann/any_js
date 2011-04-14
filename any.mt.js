@@ -124,46 +124,48 @@
 		$mt.draw.called = false;
 	};
 	
+	$mt.elementCounter = 0;
+	
 	// handlers: touchStartCallbackStart, touchStartCallbackEnd, touchMoveCallbackStart, touchMoveCallbackEnd, touchEndCallbackStart, touchEndCallbackEnd
 	// $mt.moveGesture(element, {gestureMoveCallbackEnd: function(event) {alert(event.rotation;)}});
 	$mt.registerMove = function(element, handlers) {
 		if(element._move_handlers != undefined) return;
 		element._move_handlers = handlers;
-		$mt.bind(element, 'touchstart', $mt.touchStart, false, handlers);
-		$mt.bind(element, 'touchmove', $mt.touchStart, false, handlers);
-		$mt.bind(element, 'touchend', $mt.touchStart, false, handlers);
+		$mt.bind(element, 'touchstart', $mt.touchStart);
+		$mt.bind(element, 'touchmove', $mt.touchMove);
+		$mt.bind(element, 'touchend', $mt.touchEnd);
 	};
 	
 	$mt.unregisterMove = function(element) {
-		$mt.unbind(element, 'touchstart', $mt.touchStart, false, element._move_handlers);
-		$mt.unbind(element, 'touchmove', $mt.touchStart, false, element._move_handlers);
-		$mt.unbind(element, 'touchend', $mt.touchStart, false, element._move_handlers);
+		$mt.unbind(element, 'touchstart', $mt.touchStart);
+		$mt.unbind(element, 'touchmove', $mt.touchMove);
+		$mt.unbind(element, 'touchend', $mt.touchEnd);
 		delete element._move_handlers;
 	};
 	
-	$mt.touchStart = function(event, data) {
-		if($a.isFunc(data.touchStartCallbackStart)) {
-			data.touchStartCallbackStart(event);
+	$mt.touchStart = function(event) {
+		var el = event.currentTarget;
+		if($a.isObj(el._move_handlers) && $a.isFunc(el._move_handlers.touchStartCallbackStart)) {
+			el._move_handlers.touchStartCallbackStart(event);
 		}
 		
 		event.preventDefault();
-		var el = event.currentTarget;
-		el.style.zIndex = ProjectCount += 1;
+		el.style.zIndex = $mt.elementCounter += 1;
 		el.touchX = event.pageX;
 	  el.touchY = event.pageY;
 		el.touchSID = event.streamId;
 		
-		if($a.isFunc(data.touchStartCallbackEnd)) {
-			data.touchStartCallbackEnd(event);
+		if($a.isObj(el._move_handlers) && $a.isFunc(el._move_handlers.touchStartCallbackEnd)) {
+			el._move_handlers.touchStartCallbackEnd(event);
 		}
 	};
 	
-	$mt.touchMove = function(event, data) {
-		if($a.isFunc(data.touchMoveCallbackStart)) {
-			data.touchMoveCallbackStart(event);
+	$mt.touchMove = function(event) {
+		var el = event.currentTarget;
+		if($a.isObj(el._move_handlers) && $a.isFunc(el._move_handlers.touchMoveCallbackStart)) {
+			el._move_handlers.touchMoveCallbackStart(event);
 		}
 		
-		var el = event.currentTarget;
 		if(el.gesture || el.touchSID != event.streamId || (isNaN(el.touchX) || isNaN(el.touchY)) || el.touchX == undefined || el.touchY == undefined) {
 			return;
 		}
@@ -178,31 +180,35 @@
 		el.touchX = event.pageX;
 		el.touchY = event.pageY;
 		
-		if($a.isFunc(data.touchMoveCallbackEnd)) {
-			data.touchMoveCallbackEnd(event);
+		if($a.isObj(el._move_handlers) && $a.isFunc(el._move_handlers.touchMoveCallbackEnd)) {
+			el._move_handlers.touchMoveCallbackEnd(event);
 		}
 	};
 	
-	$mt.touchEnd = function(event, data) {
-		if($a.isFunc(data.touchEndCallbackStart)) {
-			data.touchEndCallbackStart(event);
+	$mt.touchEnd = function(event) {
+		var el = event.currentTarget;
+		if($a.isObj(el._move_handlers) && $a.isFunc(el._move_handlers.touchEndCallbackStart)) {
+			el._move_handlers.touchEndCallbackStart(event);
 		}
 		
-		var el = event.currentTarget;
 		if(event.streamId != el.touchSID) return;
 		delete el.touchX;
 		delete el.touchY;
 		delete el.touchSID;
 		
-		if($a.isFunc(data.touchEndCallbackEnd)) {
-			data.touchEndCallbackEnd(event);
+		if($a.isObj(el._move_handlers) && $a.isFunc(el._move_handlers.touchEndCallbackEnd)) {
+			el._move_handlers.touchEndCallbackEnd(event);
 		}
 	};
 	
 	// handlers: gestureStartCallbackStart, gestureStartCallbackEnd, gestureMoveCallbackStart, gestureMoveCallbackEnd, gestureEndCallbackStart, gestureEndCallbackEnd
 	// $mt.registerGesture(element, {gestureMoveCallbackEnd: function(event) {alert(event.rotation;)}});
 	$mt.registerGesture = function(element, handlers) {
-		
+		if(element._move_handlers != undefined) return;
+		element._move_handlers = handlers;
+		$mt.bind(element, 'gesturestart', $mt.gestureStart);
+		$mt.bind(element, 'gesturechange', $mt.gestureChange);
+		$mt.bind(element, 'gestureend', $mt.gesturteEnd);
 	};
 	
 	$mt.unregisterGesture = function(element, rotate, scale, handlers) {
@@ -212,26 +218,26 @@
 	};
 	
 	$mt.gestureStart = function(event, data) {
-		if($a.isFunc(data.gestureStartCallbackStart)) {
-			data.gestureStartCallbackStart(event);
+		var el = event.currentTarget;
+		if($a.isObj(el._gesture_handlers) && $a.isFunc(el._gesture_handlers.gestureStartCallbackStart)) {
+			el._gesture_handlers.gestureStartCallbackStart(event);
 		}
 		
-		var el = event.currentTarget;
 		el.scale = $a.transform(el, 'scale').x || 1;
 		el.rotation = $a.transform(el, 'rotate').x || 0;
 		el.gesture = true;
 		
-		if($a.isFunc(data.gestureStartCallbackEnd)) {
+		if($a.isObj(el._gesture_handlers) && $a.isFunc(el._gesture_handlers.gestureStartCallbackEnd)) {
 			data.gestureStartCallbackEnd(event);
 		}
 	};
 	
-	$mt.gestureMove = function(event, data) {
-		if($a.isFunc(data.gestureStartCallbackStart)) {
-			data.gestureStartCallbackStart(event);
+	$mt.gestureChange = function(event) {
+		var el = event.currentTarget;
+		if($a.isObj(el._gesture_handlers) && $a.isFunc(el._gesture_handlers.gestureStartCallbackStart)) {
+			el._gesture_handlers.gestureStartCallbackStart(event);
 		}
 		
-		var el = event.currentTarget;
 		if(el.running === true) return;
 		el.running = true;
 
@@ -253,24 +259,24 @@
 			$mt.draw.set(el);
 		}
 		
-		if($a.isFunc(data.gestureStartCallbackEnd)) {
-			data.gestureStartCallbackEnd(event, rot, scaleRes);
+		if($a.isObj(el._gesture_handlers) && $a.isFunc(el._gesture_handlers.gestureStartCallbackEnd)) {
+			el._gesture_handlers.gestureStartCallbackEnd(event, rot, scaleRes);
 		}
 		el.running = false;
 	};
 	
 	$mt.gestureEnd = function(event, data) {
-		if($a.isFunc(data.gestureEndCallbackStart)) {
-			data.gestureEndCallbackStart(event);
+		var el = event.currentTarget;
+		if($a.isObj(el._gesture_handlers) && $a.isFunc(el._gesture_handlers.gestureEndCallbackStart)) {
+			el._gesture_handlers.gestureEndCallbackStart(event);
 		}
 		
-		var el = event.currentTarget;
 		el.scale = undefined;
 		el.rotation = undefined;
 		delete el.gesture;
 		
-		if($a.isFunc(data.gestureEndCallbackEnd)) {
-			data.gestureEndCallbackEnd(event);
+		if($a.isObj(el._gesture_handlers) && $a.isFunc(el._gesture_handlers.gestureEndCallbackEnd)) {
+			el._gesture_handlers.gestureEndCallbackEnd(event);
 		}
 	};
 	
