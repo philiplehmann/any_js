@@ -339,7 +339,7 @@
     var query = arguments.length > 1 ? arguments[1] : arguments[0];
     if(this.isFunc(node.querySelector)) {
 			return node.querySelector(query);
-		} else if(this.isFunc(Sizzle)) {
+		} else if(window.Sizzle && this.isFunc(Sizzle)) {
 			var arr = Sizzle(query, node);
 			if(arr.length > 0) return arr[0];
 			return null;
@@ -353,7 +353,7 @@
     var query = arguments.length > 1 ? arguments[1] : arguments[0];
     if(this.isFunc(node.querySelectorAll)) {
 			return node.querySelectorAll(query);
-		} else if(this.isFunc(Sizzle)) {
+		} else if(window.Sizzle && this.isFunc(Sizzle)) {
 			return Sizzle(query, node);
 		}
 	};
@@ -373,13 +373,28 @@
 			} else {
 				node.setAttribute('data-' + key, value);
 			}
-    } else {
+    } else if(key != undefined) {
 			if(node.dataset) {
 				return node.dataset[key];
 			} else { 
 				return node.getAttribute('data-' + key);
 			}
-    }
+    } else {
+			if(node.dataset) {
+				return node.dataset;
+			} else {
+				var values = {};
+				for(var i=0; i < node.attributes.length; i++) {
+					var key = node.attributes[i].nodeName;
+					var value = node.attributes[i].nodeValue;
+					if(key.match(/^data-.*/g) !== null) {
+						key = key.substr(5);
+						values[key] = value;
+					}
+				}
+				return values;
+			}
+		}
   };
 
   // ## CSS and animations
