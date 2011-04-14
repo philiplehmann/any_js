@@ -545,6 +545,9 @@
 		}
 		if(this.isStr(type) && setterX === undefined) {
 			if(node.matrix == undefined) node.matrix = {};
+			if(node.matrix.translate == undefined) node.matrix.translate = {x:0, y:0, z:0};
+			if(node.matrix.scale == undefined) node.matrix.scale = {x:1, y:0, z:0};
+			if(node.matrix.rotate == undefined) node.matrix.rotate = {x:0, y:0, z:0};
 
 			switch(type) {
 				case 'translate':
