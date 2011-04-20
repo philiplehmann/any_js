@@ -228,9 +228,9 @@
 	
 	$event_handler._get_data_index = 0;
 	$event_handler._get_data_id = function(namespace, data) {
-		for(var key in namespace.data) {
-			if(key == 'data' && $event_handler.compareObj(namespace.data[key], data)) {
-				return key
+		for(var id in namespace.data) {
+			if($a.compareObj(namespace.data[id], data)) {
+				return id;
 			}
 		}
 		var id = $event_handler._get_data_index++;

@@ -62,44 +62,69 @@
 	 * swipe a node
 	 * obj {
 	 * 	 node - HTMLElement 
-	 *   type - horizontal | vertical
-	 *   length
-	 *   startAfter - default 20px
+	 *   type - horizontal | vertical - default horizontal
+	 *   minSpeed - default 1
+	 *   startAfter - default 20
 	 *   onSwipeStart
 	 *   onSwipeMove, 
 	 *   onSwipeEnd
 	 * }
 	 */
-	$mt.swipe = function(obj) {
-		if(obj.node == undefined) throw 'no node defined';
-		if(obj.length == undefined) throw 'no length defined';
-		if(obj.type == undefined) obj.type = 'horizontal';
-		if(obj.speed == undefined) obj.speed = 20;
+	$mt.swipe = function(attrs) {
+		if( ! attrs.node instanceof HTMLElement) throw 'no node defined';
+		if(attrs.startAfter == undefined) attrs.startAfter = 20;
+		if(attrs.minSpeed == undefined) attrs.minSpeed = 1;
+		if(attrs.type == undefined) attrs.type = 'horizontal';
 		
-		$mt.bind(obj.node, 'touchstart', $mt.swipeStart);
-		$mt.bind(obj.node, 'touchmove', $mt.swipeMove);
-		$mt.bind(ojb.node, 'touchend', $mt.swipeEnd);
+		if(attrs.node._swipe == undefined) attrs.node._swipe = {};
+		if(attrs.node._swipe[attrs.type] == undefined) attrs.node._swipe[attrs.type] = {};
+		attrs.node._swipe[attrs.type].attrs = attrs;
+
+		var type = {type: attrs.type};
+		$mt.bind(attrs.node, 'touchstart', $mt.swipeStart, false, type);
+		$mt.bind(attrs.node, 'touchmove', $mt.swipeMove, false, type);
+		$mt.bind(attrs.node, 'touchend', $mt.swipeEnd, false, type);
 	};
 	
 	$mt.unswipe = function(node, type) {
-		$mt.unbind(obj.node, 'touchstart', $mt.swipeStart);
-		$mt.unbind(obj.node, 'touchmove', $mt.swipeMove);
-		$mt.unbind(obj.node, 'touchend', $mt.swipeEnd);
+		var type = {type: attrs.type};
+		$mt.unbind(node, 'touchstart', $mt.swipeStart, false, type);
+		$mt.unbind(node, 'touchmove', $mt.swipeMove, false, type);
+		$mt.unbind(node, 'touchend', $mt.swipeEnd, false, type);
 	}
 	
 	$mt.swipeStart = function(event, data) {
+		console.debug(data);
 		var el = event.currentTarget;
 		if(el._swipe == undefined) el._swipe = {};
-		var swipe = el._swipe;
+		if(el._swipe[data.type] == undefined) el._swipe[data.type] = {};
+		var swipe = el._swipe[data.type];
 		swipe.tsStart = Date.now();
+		if($a.isFunc(swipe.attrs.onSwipeStart)) {
+			swipe.attrs.onSwipeStart(event);
+		}
 	};
 	
 	$mt.swipeMove = function(event, data) {
-		
+		console.debug(data);
+		var el = event.currentTarget;
+		if(el._swipe == undefined) el._swipe = {};
+		if(el._swipe[data.type] == undefined) el._swipe[data.type] = {};
+		var swipe = el._swipe[data.type];
+		if($a.isFunc(swipe.attrs.onSwipeMove)) {
+			swipe.attrs.onSwipeMove(event);
+		}
 	};
 	
 	$mt.swipeEnd = function(event, data) {
-		
+		console.debug(data);
+		var el = event.currentTarget;
+		if(el._swipe == undefined) el._swipe = {};
+		if(el._swipe[data.type] == undefined) el._swipe[data.type] = {};
+		var swipe = el._swipe[data.type];
+		if($a.isFunc(swipe.attrs.onSwipeEnd)) {
+			swipe.attrs.onSwipeEnd(event);
+		}
 	};
 	
 	$mt.draw = {};

@@ -8,18 +8,18 @@
 <script src="../any.mt.moz.js" type="text/javascript"></script>
 <script type="text/javascript">
 $a.ready(function() {
-	$a.bind(document.body, 'click', test1func, false, {asdf:'asdf'});
+	$a.bind(document.body, 'click', test1func, false, {asdf:'asdf', test: test2func});
 	$a.bind(document.body, 'click', test2func, false, {asdf: 'löhlkjhl'});
 	$a.bind(document.body, 'click', test3func, false, {asdf:'asdf',dfhg: {oiuhz: 23452345}});
 });
 	function test1func(event, data) {
 		console.dir(data);
-		$a.unbind(document.body, 'click', test1func, false, {asdf:'asdf'});
+		$a.unbind(document.body, 'click', test1func, false, {asdf:'asdf', test: test2func});
 		window.setTimeout(function() {
-			$a.bind(document.body, 'click', test1func, false, {asdf:'asdf'});
+			$a.bind(document.body, 'click', test1func, false, {asdf:'asdf', test: test2func});
 		}, 3000);
 		
-	}
+	};
 	
 	
 	function test2func(event, data) {
@@ -28,7 +28,7 @@ $a.ready(function() {
 		window.setTimeout(function() {
 			$a.bind(document.body, 'click', test2func, false, data);
 		}, 3000);
-	}
+	};
 	
 	
 	function test3func(event, data) {
@@ -37,7 +37,7 @@ $a.ready(function() {
 		window.setTimeout(function() {
 			$a.bind(document.body, 'click', test3func, false, {asdf:'asdf',dfhg: {oiuhz: 23452345}});
 		}, 3000);
-	}
+	};
 </script>
 </head>
 <body>
