@@ -693,10 +693,12 @@
    *    onsuccess optional
    *    onerror optional
    *    method GET|POST default GET
+   *		async true|false default true
    * }
    */
   $a.ajax = function(params) {
     if(params.method == undefined) params.method = 'GET';
+		if(params.async == undefined) params.async = true;
 		
 		if(this.isObj(params.data) && params.data != undefined) {
 			var arr = [];
@@ -712,20 +714,25 @@
     
 
     var httpRequest = new XMLHttpRequest();
-    httpRequest.onreadystatechange = function() { 
-      if (httpRequest.readyState == 4) {
-        if (httpRequest.status == 200) {
-          if($a.isFunc(params.onsuccess)) {
-            params.onsuccess(httpRequest);
-          }
-        } else {
-          if($a.isFunc(params.onerror)) {
-            params.onerror(httpRequest);
-          }
-        }
-      }
-    };
+		if(params.async) {
+    	httpRequest.onreadystatechange = function() { 
+	      if (httpRequest.readyState == 4) {
+	        if (httpRequest.status == 200) {
+	          if($a.isFunc(params.onsuccess)) {
+	            params.onsuccess(httpRequest);
+	          }
+	        } else {
+	          if($a.isFunc(params.onerror)) {
+	            params.onerror(httpRequest);
+	          }
+	        }
+	      }
+	    };
+		}
     httpRequest.open(params.method, params.url, true);
     httpRequest.send(params.data);
+		if( ! params.async) {
+			return httpRequest.responseText;
+		}
   };
 })();
