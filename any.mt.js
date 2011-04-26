@@ -81,24 +81,24 @@
 		attrs.node._swipe[attrs.type].attrs = attrs;
 
 		var type = {type: attrs.type};
+
 		$mt.bind(attrs.node, 'touchstart', $mt.swipeStart, false, type);
 		$mt.bind(attrs.node, 'touchmove', $mt.swipeMove, false, type);
 		$mt.bind(attrs.node, 'touchend', $mt.swipeEnd, false, type);
 	};
 	
 	$mt.unswipe = function(node, type) {
-		var type = {type: attrs.type};
-		$mt.unbind(node, 'touchstart', $mt.swipeStart, false, type);
-		$mt.unbind(node, 'touchmove', $mt.swipeMove, false, type);
-		$mt.unbind(node, 'touchend', $mt.swipeEnd, false, type);
+		$mt.unbind(node, 'touchstart', $mt.swipeStart, false, {type: type, func: 'start'});
+		$mt.unbind(node, 'touchmove', $mt.swipeMove, false, {type: type, func: 'move'});
+		$mt.unbind(node, 'touchend', $mt.swipeEnd, false, {type: type, func: 'end'});
 	}
 	
 	$mt.swipeStart = function(event, data) {
-		console.debug(data);
 		var el = event.currentTarget;
 		if(el._swipe == undefined) el._swipe = {};
 		if(el._swipe[data.type] == undefined) el._swipe[data.type] = {};
 		var swipe = el._swipe[data.type];
+
 		swipe.tsStart = Date.now();
 		if($a.isFunc(swipe.attrs.onSwipeStart)) {
 			swipe.attrs.onSwipeStart(event);
@@ -106,7 +106,6 @@
 	};
 	
 	$mt.swipeMove = function(event, data) {
-		console.debug(data);
 		var el = event.currentTarget;
 		if(el._swipe == undefined) el._swipe = {};
 		if(el._swipe[data.type] == undefined) el._swipe[data.type] = {};
@@ -117,11 +116,11 @@
 	};
 	
 	$mt.swipeEnd = function(event, data) {
-		console.debug(data);
 		var el = event.currentTarget;
 		if(el._swipe == undefined) el._swipe = {};
 		if(el._swipe[data.type] == undefined) el._swipe[data.type] = {};
 		var swipe = el._swipe[data.type];
+
 		if($a.isFunc(swipe.attrs.onSwipeEnd)) {
 			swipe.attrs.onSwipeEnd(event);
 		}
