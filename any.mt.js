@@ -98,7 +98,6 @@
 		if(el._swipe == undefined) el._swipe = {};
 		if(el._swipe[data.type] == undefined) el._swipe[data.type] = {};
 		var swipe = el._swipe[data.type];
-
 		swipe.tsStart = Date.now();
 		if($a.isFunc(swipe.attrs.onSwipeStart)) {
 			swipe.attrs.onSwipeStart(event);
@@ -120,7 +119,6 @@
 		if(el._swipe == undefined) el._swipe = {};
 		if(el._swipe[data.type] == undefined) el._swipe[data.type] = {};
 		var swipe = el._swipe[data.type];
-
 		if($a.isFunc(swipe.attrs.onSwipeEnd)) {
 			swipe.attrs.onSwipeEnd(event);
 		}
