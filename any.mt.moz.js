@@ -12,11 +12,7 @@
 	var MOZTouch = {};
 	$a.ready(function() {
 		$mt.registerBindHandler(MOZTouch, $a.FIREFOX);
-		var background = $a.first('background');
-		if(background) {
-			$mt.escapeElement(background);
-			$a.bind(background, 'MozTouchUp', MOZTouch.cancel_handling);
-		}
+		$a.bind(document.body, 'MozTouchUp', MOZTouch.cancel_handling);
 	});
 	
 	MOZTouch._data = {};
