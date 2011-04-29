@@ -729,7 +729,7 @@
 	      }
 	    };
 		}
-    httpRequest.open(params.method, params.url, true);
+    httpRequest.open(params.method, params.url, params.async);
     httpRequest.send(params.data);
 		if( ! params.async) {
 			return httpRequest.responseText;
