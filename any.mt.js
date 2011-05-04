@@ -304,7 +304,7 @@
 	
 	$mt.escapeElement = function(element) {
 		element.onclick = function(event){return false;};
-		element.onmousedown = function(event){document.getElementById('focusmaker').focus();return false;};
+		element.onmousedown = function(event){return false;};
 		element.onmousemove = function(event){return false;};
 		element.onmouseup = function(event){return false;};
 		element.onmouseover = function(event){return false;};
