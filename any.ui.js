@@ -28,7 +28,20 @@
 	
 	$ui.handleInputs = function(element) {
 		element = element || root;
-		$mt.bind($a.all(element, 'input'), 'touch', function(event) {event.currentTarget.focus();console.log('focus');});
+		var inputs = $a.all(element, 'input');
+		for(var i=0; i < inputs.length; i++) {
+			inputs[i].autocomplete="off";
+		}
+		$mt.bind(inputs, 'touch', $ui.handleInputEvent);
+	};
+	
+	$ui.handleInputEvent = function(event) {
+		event.currentTarget.focus();
+		if(event.currentTarget.form && $a.isFunc(event.currentTarget.form['on' + event.currentTarget.type])) {
+			event.currentTarget.form['on' + event.currentTarget.type](event.currentTarget.form);
+		} else if(event.currentTarget.form && $a.isFunc(event.currentTarget.form['on' + event.currentTarget.type])) {
+			event.currentTarget.form[event.currentTarget.type](event.currentTarget.form);
+		}
 	};
 	
 	$ui.replaceSlider = function(element) {
@@ -177,7 +190,7 @@
 	};
 
 	$ui.Keyboard.prototype.symbol = function(li) {
-		this.insert($a.first(li, 'span.on').innerHTML.trim());
+		this.insert($a.first(li, 'span.off').innerHTML.trim());
 	};
 
 	$ui.Keyboard.prototype.letter = function(li) {
@@ -194,7 +207,16 @@
 	};
 
 	$ui.Keyboard.prototype.tab = function(li) {
-		
+		if(this.input.form) {
+			for(var i=0; i < this.input.form.elements.length; i++) {
+				if(this.input.form.elements[i] == this.input) {
+					i++;
+					if(i == this.input.form.elements[i]) i = 0;
+					this.input.form.elements[i].focus();
+					return;
+				}
+			}
+		}
 	};
 
 	$ui.Keyboard.prototype.capslock = function(li) {
@@ -215,7 +237,6 @@
 
 	$ui.Keyboard.prototype.shift = function(li) {
 		if(this.capslockEnabled) return;
-		console.debug('shift');
 		var letters = $a.all(this.element, 'li.letter');
 		for(var i=0; i < letters.length; i++) {
 			var code = $ui.Keyboard.ord(letters[i].innerHTML);
