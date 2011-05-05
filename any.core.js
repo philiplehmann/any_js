@@ -87,7 +87,17 @@
   $a.isStr = function(str) {
     return (typeof str === 'string');
   };
+
+	// Returns `true` if supplied object is a number.
+  $a.isNum = function(int) {
+    return (typeof int === 'number');
+  };
   
+	// Returns `true` if supplied object is a number.
+  $a.isBool = function(bool) {
+    return (typeof bool === 'boolean');
+  };
+
   // Extend obj1 with obj2 recursive
   $a.extend = function(obj1, obj2) {
 		if(obj1 == undefined) obj1 = {};
