@@ -104,7 +104,9 @@
 		$a.css(this.overflow, {left: (100 - this.attr.overflow_value) + '%', width: this.attr.overflow_value + '%'});
 		this.overflow.innerHTML = this.attr.overflow_label || this.attr.overflow_value;
 		this.filler = document.createElement('filler');
-		$a.css(this.filler, {left: this.attr.filler_left + '%', width: this.attr.filler_width + '%'});
+		var range = parseInt(this.attr.value_max) - parseInt(this.attr.value_min);
+		var value_percent = 100 / range * (parseInt(this.attr.value_initial) - parseInt(this.attr.value_min));
+		$a.css(this.filler, {left: '0px', width: value_percent + '%'});
 		this.subfiller = document.createElement('subfiller');
 		$a.css(this.subfiller, {width: this.attr.subfiller_value + '%'});
 		this.subfiller.innerHTML = this.attr.subfiller_label || this.attr.subfiller_value;
@@ -113,10 +115,18 @@
 		this.labelmax = document.createElement('labelmax');
 		this.labelmax.innerHTML = this.attr.label_max || this.attr.value_max;
 		this.bubble = document.createElement('bubble');
+		this.bubble.style.left = value_percent + '%';
 		this.dragthis = document.createElement('dragthis');
 		this.inputwrapper = document.createElement('inputwrapper');
 		this.bubbleinput = document.createElement('input');
+		this.bubbleinput.type = 'text';
 		this.bubbleinput.value = this.attr.value_initial;
+		this.bubbleinput.name = this.attr.value_name;
+		
+		$mt.bind(this.bubble, 'touchstart', this.startBubble, false, {bubbleinput: this.bubbleinput});
+		$mt.bind(this.bubble, 'touchmove', this.moveBubble, false, {bubble: this.bubble, filler: this.filler, bubbleinput: this.bubbleinput, min: this.attr.value_min, max: this.attr.value_max});
+		$mt.bind(this.bubble, 'touchend', this.endBubble, false, {bubbleinput: this.bubbleinput});
+		$mt.bind(this.empty, 'touch', this.touchBar, false, {bar: this.bar, bubble: this.bubble, filler: this.filler, bubbleinput: this.bubbleinput, min: this.attr.value_min, max: this.attr.value_max});
 		
 		this.inputwrapper.appendChild(this.bubbleinput);
 		this.bubble.appendChild(this.dragthis);
@@ -130,6 +140,50 @@
 		this.element.appendChild(this.labelmin);
 		this.element.appendChild(this.labelmax);
 		this.element.appendChild(this.bubble);
+	};
+	
+	$ui.Slider.prototype.startBubble = function(event) {
+		event.currentTarget.bubblePosition = event.pageX;
+	};
+	
+	$ui.Slider.prototype.moveBubble = function(event, data) {
+		var left = parseInt(data.bubble.style.left);
+		if(isNaN(left)) left = 0;
+		left += 100 / data.filler.clientWidth * (event.pageX - event.currentTarget.bubblePosition);
+		left = left < 0 ? 0 : left > 100 ? 100 : left;
+		
+		data.bubble.style.left = Math.round(left) + '%';
+		data.filler.style.width = Math.round(left) + '%';
+		var number = parseInt(data.max) - parseInt(data.min);
+		var value = Math.round(parseInt(data.min) + (number / 100 * left));
+		if(value != parseInt(data.bubbleinput.value)) {
+			data.bubbleinput.value = value;
+		}
+		event.currentTarget.bubblePosition = event.pageX;
+	};
+	
+	$ui.Slider.prototype.endBubble = function(event, data) {
+		delete event.currentTarget.bubblePosition;
+		$ui.fireEvent(data.bubbleinput, 'change');
+	};
+	
+	$ui.Slider.prototype.touchBar = function(event, data) {
+		var left = 100 / event.currentTarget.clientWidth * event.layerX;
+		data.bubble.style.left = left + '%';
+		data.filler.style.width = left + '%';
+		var number = parseInt(data.max) - parseInt(data.min);
+		var value = Math.round(parseInt(data.min) + (number / 100 * left));
+		if(value != parseInt(data.bubbleinput.value)) {
+			data.bubbleinput.value = value;
+			$ui.fireEvent(data.bubbleinput, 'change');
+		}
+	};
+	
+	// event types: https://developer.mozilla.org/en/DOM/document.createEvent#Notes
+	$ui.fireEvent = function(element, type) {
+		var evt = document.createEvent("HTMLEvents");
+		evt.initEvent(type, true, false)
+		return element.dispatchEvent(evt);
 	};
 	
 	/**
@@ -187,6 +241,7 @@
 		this.input.selectionStart;
 		this.input.selectionEnd;
 		this.input.value += sign;
+		$ui.fireEvent(this.input, 'change');
 	};
 
 	$ui.Keyboard.prototype.symbol = function(li) {
@@ -204,6 +259,7 @@
 			this.input.value = this.input.value.substr(0, this.input.selectionStart) + this.input.value.substr(this.input.selectionEnd, this.input.value.length);
 		}
 		this.input.selectionEnd = this.input.selectionStart;
+		$ui.fireEvent(this.input, 'change');
 	};
 
 	$ui.Keyboard.prototype.tab = function(li) {

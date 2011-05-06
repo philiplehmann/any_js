@@ -106,7 +106,7 @@ slider bubble inputwrapper {
 	height: 34px;
 	display: block;
 }
-slider bubble input {
+slider bubble input[type="text"] {
 	position: absolute;
 	left: 10px;
 	width: 59px;
