@@ -134,10 +134,11 @@ slider bubble input[type="text"] {
 	line-height: 40px;
 	text-align: center;
 	background: #fff;
-	border: 1px solid #f9f9f9;
+	border: 1px solid #6d6d6d;
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
 	border-radius: 5px;
+	box-shadow: inset 0 0 1px #000, inset 0 2px 0 #fff;
 }
 .keyboard .capslock,
 .keyboard .tab,
@@ -157,8 +158,13 @@ slider bubble input[type="text"] {
 .keyboard .left-shift {
 	width: 95px;
 }
-.keyboard .right-shift {
+.keyboard .right-shift,
+.keyboard .right-shift.pressed {
 	width: 109px;
+	background-image: url('../images/keyboard/hide.png');
+	background-repeat: no-repeat;
+	background-position: center center;
+	text-indent: -6000px;
 }
 .keyboard .lastitem {
 	margin-right: 0;
@@ -173,18 +179,11 @@ slider bubble input[type="text"] {
 .keyboard .on {
 	display: none;
 }
-.keyboard li:hover,
-.keyboard li.pressed {
-	position: relative;
-	top: 1px;
-	left: 1px;
-	border-color: #e5e5e5;
-}
-.keyboardWrapper .closeButton {
-	width: 31px;
-	height: 31px;
-	position: absolute;
-	right: -15px;
-	top: -15px;
-	background-image: url('../images/asset/close.png');
+.keyboard li.pressed,
+.keyboard li.pressedcapslock {
+	background-image: url('/images/keyboard/pressed.png');
+	box-shadow: inset 0 0 1px #000, inset 0 -2px 0 #fff;
+	border: 1px solid #6d6d6d;
+	top: 0;
+	left: 0;
 }

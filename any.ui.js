@@ -142,8 +142,9 @@
 		this.element.appendChild(this.bubble);
 	};
 	
-	$ui.Slider.prototype.startBubble = function(event) {
+	$ui.Slider.prototype.startBubble = function(event, data) {
 		event.currentTarget.bubblePosition = event.pageX;
+		data.bubbleinput.focus();
 	};
 	
 	$ui.Slider.prototype.moveBubble = function(event, data) {
@@ -164,6 +165,7 @@
 	
 	$ui.Slider.prototype.endBubble = function(event, data) {
 		delete event.currentTarget.bubblePosition;
+		data.bubbleinput.blur();
 		$ui.fireEvent(data.bubbleinput, 'change');
 	};
 	
@@ -241,7 +243,6 @@
 		this.input.selectionStart;
 		this.input.selectionEnd;
 		this.input.value += sign;
-		$ui.fireEvent(this.input, 'change');
 	};
 
 	$ui.Keyboard.prototype.symbol = function(li) {
@@ -259,7 +260,6 @@
 			this.input.value = this.input.value.substr(0, this.input.selectionStart) + this.input.value.substr(this.input.selectionEnd, this.input.value.length);
 		}
 		this.input.selectionEnd = this.input.selectionStart;
-		$ui.fireEvent(this.input, 'change');
 	};
 
 	$ui.Keyboard.prototype.tab = function(li) {
@@ -277,11 +277,11 @@
 
 	$ui.Keyboard.prototype.capslock = function(li) {
 		if(this.capslockEnabled) {
-			li.style.backgroundColor = '';
+			$a.removeClass(li, 'pressedcapslock');
 			this.capslockEnabled = false;
 			this.shift(li);
 		} else {
-			li.style.backgroundColor = 'gray';
+			$a.addClass(li, 'pressedcapslock');
 			this.shift(li);
 			this.capslockEnabled = true;
 		}
@@ -307,5 +307,43 @@
 
 	$ui.Keyboard.prototype.space = function(li) {
 		this.insert(' ');
+	};
+	
+	// set default values for select
+	$ui.setDefaultOnSelects = function(element) {
+		var selects = $a.all(element, 'select[default]');
+		for(var i=0; i < selects.length; i++) {
+			var options = selects[i].options;
+			for(var j=0; j < options.length; j++) {
+				if(options[j].value == selects[i].getAttribute('default')) {
+					options[j].setAttribute('selected', 'selected');
+				}
+			}
+		}
+	};
+	
+	// enable switch tags (like radio buttons)
+	$ui.activeSwitchs = function(element) {
+		var switches = $a.all(element, 'switch');
+		for(var i=0; i < switches.length; i++) {
+			var input = $a.first(switches[i], 'input');
+			var options = $a.all(switches[i], 'switchoption');
+			$a.removeClass(options, 'active');
+			$mt.bind(options, 'touch', this.touchSwitchOption);
+			for(var j=0; j < options.length; j++) {
+				if(input.value == $a.data(options[j], 'value')) {
+					$a.addClass(options[j], 'active');
+					break;
+				}
+			}
+		}
+	};
+	
+	$ui.touchSwitchOption = function(event) {
+		var options = $a.all(event.currentTarget.parentNode, 'switchoption');
+		$a.removeClass(options, 'active');
+		$a.addClass(event.currentTarget, 'active');
+		var input = $a.first(event.currentTarget.parentNode, 'input');
+		input.value = $a.data(event.currentTarget, 'value');
 	};
 })(this._anyNoConflict, this._anyMtNoConflict);
