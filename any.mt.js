@@ -59,6 +59,105 @@
 	};
 	
 	/**
+	 * scroll a node subnode
+	 * obj {
+	 * 	 node - HTMLElement 
+	 *   type - horizontal | vertical - default vertical
+	 *   onScrollStart
+	 *   onScrollMove, 
+	 *   onScrollEnd
+	 * }
+	 */
+	$mt.scroll = function(attrs) {
+		if( ! attrs.node instanceof HTMLElement) throw 'no node defined';
+		if(attrs.type == undefined) attrs.type = 'vertical';
+		
+		if(attrs.node._scroll == undefined) attrs.node._scroll = {};
+		if(attrs.node._scroll[attrs.type] == undefined) attrs.node._scroll[attrs.type] = {};
+		attrs.node._scroll[attrs.type].attrs = attrs;
+
+		$mt.bind(attrs.node, 'touchstart', $mt.scrollStart, false, {type: attrs.type, func: 'start'});
+		$mt.bind(attrs.node, 'touchmove', $mt.scrollMove, false, {type: attrs.type, func: 'move'});
+		$mt.bind(attrs.node, 'touchend', $mt.scrollEnd, false, {type: attrs.type, func: 'end'});
+	};
+	
+	$mt.unscroll = function(node, type) {
+		var node = attrs.node;
+		$mt.unbind(node, 'touchstart', $mt.scrollStart, false, {type: type, func: 'start'});
+		$mt.unbind(node, 'touchmove', $mt.scrollMove, false, {type: type, func: 'move'});
+		$mt.unbind(node, 'touchend', $mt.scrollEnd, false, {type: type, func: 'end'});
+	};
+	
+	$mt.scrollStart = function(event, data) {
+		var el = event.currentTarget;
+		if(el._scroll == undefined) el._scroll = {};
+		if(el._scroll[data.type] == undefined) el._scroll[data.type] = {};
+		var scroll = el._scroll[data.type];
+		scroll.positionY = event.pageY;
+		scroll.positionX = event.pageX;
+		scroll.sid = event.streamId;
+		if($a.isFunc(scroll.attrs.onScrollStart)) {
+			scroll.attrs.onScrollStart(event);
+		}
+	};
+	
+	$mt.scrollMove = function(event, data) {
+		var el = event.currentTarget;
+		if(el._scroll == undefined) el._scroll = {};
+		if(el._scroll[data.type] == undefined) el._scroll[data.type] = {};
+		var scroll = el._scroll[data.type];
+		var scrollNode = scroll.attrs.node;
+		var node = scrollNode.children[0];
+		if(scroll.sid != event.streamId) return;
+		
+		/*if(Math.abs(scroll.positionY - event.pageY) < Math.abs(scroll.positionX - event.pageX)) {
+			return;
+		}*/
+		
+		var diff = 0;
+		if(data.type == 'vertical') {
+			diff = scroll.positionY - event.pageY;
+		} else {
+			diff = scroll.positionX - event.pageX;
+		}
+		if(diff == 0) {
+			return;
+		}
+		
+		var margin = data.type == 'vertical' ? node.style.marginTop : node.style.marginLeft;
+		var contentSize = data.type == 'vertical' ? scrollNode.clientHeight : scrollNode.clientWidth;
+		var scrollSize = data.type == 'vertical' ? node.clientHeight : node.clientWidth;
+		margin = margin == "" ? 0 : parseInt(margin);
+		var maxSize = contentSize - scrollSize;
+		var position = margin - diff;
+		
+		position = position < maxSize ? maxSize : position;
+		position = position > 0 ? 0 : position;
+		
+		if(data.type == 'vertical') {
+			node.style.marginTop = position + 'px';
+		} else {
+			node.style.marginLeft = position + 'px';
+		}
+		scroll.positionY = event.pageY;
+		scroll.positionX = event.pageX;
+		
+		if($a.isFunc(scroll.attrs.onScrollMove)) {
+			scroll.attrs.onScrollMove(event);
+		}
+	};
+	
+	$mt.scrollEnd = function(event, data) {
+		var el = event.currentTarget;
+		if(el._scroll == undefined) el._scroll = {};
+		if(el._scroll[data.type] == undefined) el._scroll[data.type] = {};
+		var scroll = el._scroll[data.type];
+		if($a.isFunc(scroll.attrs.onScrollEnd)) {
+			scroll.attrs.onScrollEnd(event);
+		}
+	};
+	
+	/**
 	 * swipe a node
 	 * obj {
 	 * 	 node - HTMLElement 
