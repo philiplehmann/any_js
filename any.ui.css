@@ -173,7 +173,6 @@ slider bubble input[type="text"] {
 .keyboard .on {
 	display: none;
 }
-.keyboard
 .keyboard li:hover,
 .keyboard li.pressed {
 	position: relative;
