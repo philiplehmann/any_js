@@ -12,7 +12,7 @@
 	<li class="symbol"><span class="off">0</span><span class="on">)</span></li>
 	<li class="symbol"><span class="off">-</span><span class="on">_</span></li>
 	<li class="symbol"><span class="off">=</span><span class="on">+</span></li>
-	<li class="delete lastitem">delete</li>
+	<li class="back lastitem">delete</li>
 	<li class="tab">tab</li>
 	<li class="letter">q</li>
 	<li class="letter">w</li>
@@ -39,7 +39,7 @@
 	<li class="letter">l</li>
 	<li class="symbol"><span class="off">;</span><span class="on">:</span></li>
 	<li class="symbol"><span class="off">'</span><span class="on">&quot;</span></li>
-	<li class="return lastitem">return</li>
+	<li class="enter lastitem">return</li>
 	<li class="left-shift shift">shift</li>
 	<li class="letter">z</li>
 	<li class="letter">x</li>

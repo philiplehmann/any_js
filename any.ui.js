@@ -212,7 +212,7 @@
 	  return String.fromCharCode(o);
 	};
 
-	$ui.Keyboard.types = ['symbol', 'letter', 'delete', 'tab', 'capslock', 'return', 'space'];
+	$ui.Keyboard.types = ['symbol', 'letter', 'back', 'tab', 'capslock', 'enter', 'space'];
 
 	$ui.Keyboard.prototype.pressKey = function(event) {
 		var el = event.currentTarget;
@@ -252,7 +252,7 @@
 		this.insert(li.innerHTML.trim());
 	};
 
-	$ui.Keyboard.prototype.delete = function(li) {
+	$ui.Keyboard.prototype.back = function(li) {
 		if(this.input.selectionStart == this.input.selectionEnd) {
 			this.input.value = this.input.value.substr(0, this.input.selectionStart - 1) + this.input.value.substr(this.input.selectionEnd, this.input.value.length);
 		} else {
@@ -287,7 +287,7 @@
 		}
 	};
 
-	$ui.Keyboard.prototype.return = function(li) {
+	$ui.Keyboard.prototype.enter = function(li) {
 		
 	};
 

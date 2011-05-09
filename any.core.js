@@ -89,8 +89,8 @@
   };
 
 	// Returns `true` if supplied object is a number.
-  $a.isNum = function(int) {
-    return (typeof int === 'number');
+  $a.isNum = function(num) {
+    return (typeof num === 'number');
   };
   
 	// Returns `true` if supplied object is a number.
