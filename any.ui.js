@@ -35,7 +35,9 @@
 			number = number.substr(0, number.length - len);
 		}
 		while(number.length > 0) {
-			arr.push(number.substr(number.length - 3, 3));
+			var pos = number.length - 3;
+			pos = pos < 0 ? 0 : pos;
+			arr.push(number.substr(pos, 3));
 			number = number.substr(0, number.length - 3);
 		}
 		arr.reverse();
@@ -127,15 +129,15 @@
 		this.empty.slider = this;
 		this.overflow = document.createElement('overflow');
 		this.overflow.slider = this;
-		var overflow_value = parseInt(this.attr.overflow_value);
+		var overflow_value = parseInt(this.attr.overflow_value || 0);
 		$a.css(this.overflow, {left: (100 - overflow_value) + '%', width: overflow_value + '%'});
 		this.overflow.innerHTML = this.attr.overflow_label || this.attr.overflow_value || '';
 		this.filler = document.createElement('filler');
 		this.filler.slider = this;
-		var range = parseInt(this.attr.value_max) - parseInt(this.attr.value_min);
-		var value_initial = parseInt(this.attr.value_initial);
-		var value_min = parseInt(this.attr.value_min);
-		var value_max = parseInt(this.attr.value_max);
+		var value_initial = parseInt(this.attr.value_initial || 0);
+		var value_min = parseInt(this.attr.value_min || 0);
+		var value_max = parseInt(this.attr.value_max || 0);
+		var range = value_max - value_min;
 		value_initial = value_initial < value_min ? value_min : value_initial;
 		value_initial = value_initial > value_max ? value_max : value_initial;
 		var value_percent = (100 - overflow_value) / range * (value_initial - value_min);
@@ -195,15 +197,17 @@
 			var diff = ev.pageX - ev.currentTarget.bubblePosition;
 			if(diff == 0) return;
 			
-			var left = parseInt(slider.bubble.style.left);
-			if(isNaN(left)) left = 0;
+			var left = parseInt(slider.bubble.style.left) || 0;
 			
-			var overflow_value = parseInt(slider.attr.overflow_value);
-			var min = parseInt(slider.attr.value_min);
-			var max = parseInt(slider.attr.value_max);
+			var overflow_value = parseInt(slider.attr.overflow_value) || 0;
+			var min = parseInt(slider.attr.value_min) || 0;
+			var max = parseInt(slider.attr.value_max) || 0;
 			
 			left += (100 - overflow_value) / slider.filler.clientWidth * diff;
-			left = left < 0 ? 0 : left > (100 - overflow_value) ? (100 - overflow_value) : left;
+			left = parseInt(left) || 1;
+			left = left < 0 ? 0 : left;
+			left = left > (100 - overflow_value) ? (100 - overflow_value) : left;
+			console.log(left);
 
 			slider.bubble.style.left = Math.round(left) + '%';
 			slider.filler.style.width = Math.round(left) + '%';
