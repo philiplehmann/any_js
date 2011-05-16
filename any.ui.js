@@ -207,7 +207,6 @@
 			left = parseInt(left) || 1;
 			left = left < 0 ? 0 : left;
 			left = left > (100 - overflow_value) ? (100 - overflow_value) : left;
-			console.log(left);
 
 			slider.bubble.style.left = Math.round(left) + '%';
 			slider.filler.style.width = Math.round(left) + '%';
