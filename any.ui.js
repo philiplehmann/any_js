@@ -127,7 +127,8 @@
 		this.empty.slider = this;
 		this.overflow = document.createElement('overflow');
 		this.overflow.slider = this;
-		$a.css(this.overflow, {left: (100 - this.attr.overflow_value) + '%', width: this.attr.overflow_value + '%'});
+		var overflow_value = parseInt(this.attr.overflow_value);
+		$a.css(this.overflow, {left: (100 - overflow_value) + '%', width: overflow_value + '%'});
 		this.overflow.innerHTML = this.attr.overflow_label || this.attr.overflow_value || '';
 		this.filler = document.createElement('filler');
 		this.filler.slider = this;
@@ -137,7 +138,7 @@
 		var value_max = parseInt(this.attr.value_max);
 		value_initial = value_initial < value_min ? value_min : value_initial;
 		value_initial = value_initial > value_max ? value_max : value_initial;
-		var value_percent = 100 / range * (value_initial - value_min);
+		var value_percent = (100 - overflow_value) / range * (value_initial - value_min);
 		$a.css(this.filler, {left: '0px', width: value_percent + '%'});
 		this.subfiller = document.createElement('subfiller');
 		this.subfiller.slider = this;
@@ -162,10 +163,10 @@
 		this.bubbleinput.value = this.attr.value_initial;
 		this.bubbleinput.name = this.attr.value_name;
 		
-		$mt.bind(this.bubble, 'touchstart', this.startBubble, false, {bubbleinput: this.bubbleinput});
-		$mt.bind(this.bubble, 'touchmove', this.moveBubble, false, {bubble: this.bubble, filler: this.filler, bubbleinput: this.bubbleinput, min: this.attr.value_min, max: this.attr.value_max});
-		$mt.bind(this.bubble, 'touchend', this.endBubble, false, {bubbleinput: this.bubbleinput});
-		$mt.bind(this.empty, 'touch', this.touchBar, false, {bar: this.bar, bubble: this.bubble, filler: this.filler, bubbleinput: this.bubbleinput, min: this.attr.value_min, max: this.attr.value_max});
+		$mt.bind(this.bubble, 'touchstart', this.startBubble);
+		$mt.bind(this.bubble, 'touchmove', this.moveBubble);
+		$mt.bind(this.bubble, 'touchend', this.endBubble);
+		$mt.bind(this.empty, 'touch', this.touchBar);
 		
 		this.inputwrapper.appendChild(this.bubbleinput);
 		this.bubble.appendChild(this.dragthis);
@@ -181,55 +182,66 @@
 		this.element.appendChild(this.bubble);
 	};
 	
-	$ui.Slider.prototype.startBubble = function(event, data) {
+	$ui.Slider.prototype.startBubble = function(event) {
 		event.currentTarget.bubblePosition = event.pageX;
-		data.bubbleinput.focus();
+		//event.currentTarget.slider.bubbleinput.focus();
 	};
 	
-	$ui.Slider.prototype.moveBubble = function(event, data) {
-		var slider = event.currentTarget.slider;
-		var left = parseInt(data.bubble.style.left);
-		if(isNaN(left)) left = 0;
-		left += 100 / data.filler.clientWidth * (event.pageX - event.currentTarget.bubblePosition);
-		left = left < 0 ? 0 : left > 100 ? 100 : left;
-		
-		
-		
-		data.bubble.style.left = Math.round(left) + '%';
-		data.filler.style.width = Math.round(left) + '%';
-		var number = parseInt(data.max) - parseInt(data.min);
-		var value = Math.round(parseInt(data.min) + (number / 100 * left));
-		if(slider.attr.accuracy) {
-			value = Math.round(value / slider.attr.accuracy) * slider.attr.accuracy;
-		}
-		if(value != parseInt(data.bubbleinput.value)) {
-			data.bubbleinput.value = $ui.formatNumber(value);
-		}
-		event.currentTarget.bubblePosition = event.pageX;
+	$ui.Slider.prototype.moveBubble = function(ev) {
+		//$a.requestAnimationFrame(function() {
+			var slider = ev.currentTarget.slider;
+			
+			
+			var diff = ev.pageX - ev.currentTarget.bubblePosition;
+			if(diff == 0) return;
+			
+			var left = parseInt(slider.bubble.style.left);
+			if(isNaN(left)) left = 0;
+			
+			var overflow_value = parseInt(slider.attr.overflow_value);
+			var min = parseInt(slider.attr.value_min);
+			var max = parseInt(slider.attr.value_max);
+			
+			left += (100 - overflow_value) / slider.filler.clientWidth * diff;
+			left = left < 0 ? 0 : left > (100 - overflow_value) ? (100 - overflow_value) : left;
+
+			slider.bubble.style.left = Math.round(left) + '%';
+			slider.filler.style.width = Math.round(left) + '%';
+			var number = max - min;
+			var value = Math.round(min + (number / (100 - overflow_value) * left));
+			if(slider.attr.accuracy) {
+				value = Math.round(value / slider.attr.accuracy) * slider.attr.accuracy;
+			}
+			if(value != parseInt(slider.bubbleinput.value)) {
+				slider.bubbleinput.value = $ui.formatNumber(value);
+			}
+			ev.currentTarget.bubblePosition = ev.pageX;
+		//});
 	};
 	
-	$ui.Slider.prototype.endBubble = function(event, data) {
+	$ui.Slider.prototype.endBubble = function(event) {
 		delete event.currentTarget.bubblePosition;
-		data.bubbleinput.blur();
-		$ui.fireEvent(data.bubbleinput, 'change');
+		//data.bubbleinput.blur();
+		$ui.fireEvent(event.currentTarget.slider.bubbleinput, 'change');
 	};
 	
-	$ui.Slider.prototype.touchBar = function(event, data) {
+	$ui.Slider.prototype.touchBar = function(event) {
+		var slider = event.currentTarget.slider;
 		var left = 100 / event.currentTarget.clientWidth * event.layerX;
-		data.bubble.style.left = left + '%';
-		data.filler.style.width = left + '%';
-		var number = parseInt(data.max) - parseInt(data.min);
-		var value = Math.round(parseInt(data.min) + (number / 100 * left));
-		if(value != parseInt(data.bubbleinput.value)) {
-			data.bubbleinput.value = value;
-			$ui.fireEvent(data.bubbleinput, 'change');
+		slider.bubble.style.left = left + '%';
+		slider.filler.style.width = left + '%';
+		var number = parseInt(slider.attr.value_max) - parseInt(slider.attr.value_min);
+		var value = Math.round(parseInt(slider.attr.value_min) + (number / 100 * left));
+		if(value != parseInt(slider.bubbleinput.value)) {
+			slider.bubbleinput.value = $ui.formatNumber(value);
+			$ui.fireEvent(slider.bubbleinput, 'change');
 		}
 	};
 	
 	// event types: https://developer.mozilla.org/en/DOM/document.createEvent#Notes
 	$ui.fireEvent = function(element, type) {
 		var evt = document.createEvent("HTMLEvents");
-		evt.initEvent(type, true, false)
+		evt.initEvent(type, true, false);
 		return element.dispatchEvent(evt);
 	};
 	
@@ -243,7 +255,7 @@
 		
 		if( ! this.element.keyboard) {
 			var lis = $a.all(this.element, 'li');
-			$mt.bind(lis, 'touch', this.pressKey);
+			//$mt.bind(lis, 'touch', this.pressKey);
 			$mt.bind(lis, 'touchstart', this.touchDown);
 			$mt.bind(lis, 'touchend', this.touchUp);
 		}
@@ -274,6 +286,13 @@
 		$a.addClass(event.currentTarget, 'pressed');
 		if($a.hasClass(event.currentTarget, 'shift')) {
 			event.currentTarget.parentNode.keyboard.shift(event.currentTarget);
+		}
+		
+		var el = event.currentTarget;
+		for(var i=0; i < $ui.Keyboard.types.length; i++) {
+			if($a.hasClass(el, $ui.Keyboard.types[i])) {
+				el.parentNode.keyboard[$ui.Keyboard.types[i]](el);
+			}
 		}
 	};
 
