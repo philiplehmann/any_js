@@ -162,8 +162,11 @@
 		this.bubbleinput = document.createElement('input');
 		this.bubbleinput.slider = this;
 		this.bubbleinput.type = 'text';
-		this.bubbleinput.value = this.attr.value_initial;
-		this.bubbleinput.name = this.attr.value_name;
+		this.bubbleinput.value = $ui.formatNumber(this.attr.value_initial);
+		this.input = document.createElement('input');
+		this.input.type = 'hidden';
+		this.input.value = this.attr.value_initial;
+		this.input.name = this.attr.value_name;
 		
 		$mt.bind(this.bubble, 'touchstart', this.startBubble);
 		$mt.bind(this.bubble, 'touchmove', this.moveBubble);
@@ -171,6 +174,7 @@
 		$mt.bind(this.empty, 'touch', this.touchBar);
 		
 		this.inputwrapper.appendChild(this.bubbleinput);
+		this.inputwrapper.appendChild(this.input);
 		this.bubble.appendChild(this.dragthis);
 		this.bubble.appendChild(this.inputwrapper);
 		this.filler.appendChild(this.subfiller);
@@ -217,6 +221,7 @@
 			}
 			if(value != parseInt(slider.bubbleinput.value)) {
 				slider.bubbleinput.value = $ui.formatNumber(value);
+				slider.input.value = value;
 			}
 			ev.currentTarget.bubblePosition = ev.pageX;
 		//});
@@ -225,7 +230,7 @@
 	$ui.Slider.prototype.endBubble = function(event) {
 		delete event.currentTarget.bubblePosition;
 		//data.bubbleinput.blur();
-		$ui.fireEvent(event.currentTarget.slider.bubbleinput, 'change');
+		$ui.fireEvent(event.currentTarget.slider.input, 'change');
 	};
 	
 	$ui.Slider.prototype.touchBar = function(event) {
@@ -237,7 +242,8 @@
 		var value = Math.round(parseInt(slider.attr.value_min) + (number / 100 * left));
 		if(value != parseInt(slider.bubbleinput.value)) {
 			slider.bubbleinput.value = $ui.formatNumber(value);
-			$ui.fireEvent(slider.bubbleinput, 'change');
+			slider.input.value = value;
+			$ui.fireEvent(slider.input, 'change');
 		}
 	};
 	
