@@ -161,7 +161,7 @@ slider bubble input[type="text"] {
 .keyboard .right-shift,
 .keyboard .right-shift.pressed {
 	width: 109px;
-	background-image: url('../images/keyboard/hide.png');
+	background-image: url('/images/keyboard/hide.png');
 	background-repeat: no-repeat;
 	background-position: center center;
 	text-indent: -6000px;
