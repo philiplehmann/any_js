@@ -113,11 +113,15 @@
 	data-value_min="0"
 	data-value_max="10"
 	data-value_initial="18'000.-"
-	data-value_name="mandate_amount"
+	data-value_default="5"
 	data-unit=" Years"
-	data-accuracy="1 0.1 / 0.01 / 0.05">
+	data-accuracy="1 0.1 / 0.01 / 0.05"
+	data-enabled="0">
 	*/
 	$ui.Slider.prototype.createSlider = function() {
+		var enabled = parseInt(this.attr.enabled);
+		enabled = isNaN(enabled) ? 1 : enabled;
+		
 		this.element = document.createElement('slider');
 		this.element.slider = this;
 		this.label = document.createElement('label');
@@ -134,7 +138,6 @@
 		this.overflow.innerHTML = this.attr.overflow_label || this.attr.overflow_value || '';
 		this.filler = document.createElement('filler');
 		this.filler.slider = this;
-		
 		var value_initial = parseInt(this.attr.value_initial || 0);
 		var value_min = parseInt(this.attr.value_min || 0);
 		var value_max = parseInt(this.attr.value_max || 0);
@@ -144,13 +147,14 @@
 		var value_percent = (100 - overflow_value) / range * (value_initial - value_min);
 		$a.css(this.filler, {left: '0px', width: value_percent + '%'});
 		
-		// add subfiller if the data is set
 		if(this.attr.subfiller_value && this.attr.subfiller_label) {
 			this.subfiller = document.createElement('subfiller');
 			this.subfiller.slider = this;
 			$a.css(this.subfiller, {width: this.attr.subfiller_value + '%'});
 			this.subfiller.innerHTML = this.attr.subfiller_label || this.attr.subfiller_value || '';
+			this.filler.appendChild(this.subfiller);
 		}
+		
 		this.labelmin = document.createElement('labelmin');
 		this.labelmin.slider = this;
 		this.labelmin.innerHTML = this.attr.label_min || this.attr.value_min;
@@ -158,47 +162,43 @@
 		this.labelmax.slider = this;
 		this.labelmax.innerHTML = this.attr.label_max || this.attr.value_max;
 		
-		if(this.attr.label_center) {
-			this.labelcenter = document.createElement('labelcenter');
-			this.labelcenter.slider = this;
-			this.labelcenter.innerHTML = this.attr.label_center || '';
-		}
 		
-		this.bubble = document.createElement('bubble');
-		this.bubble.slider = this;
-		this.bubble.style.left = value_percent + '%';
-		this.dragthis = document.createElement('dragthis');
-		this.dragthis.slider = this;
-		this.inputwrapper = document.createElement('inputwrapper');
-		this.inputwrapper.slider = this;
-		this.bubbleinput = document.createElement('input');
-		this.bubbleinput.slider = this;
-		this.bubbleinput.type = 'text';
-		this.bubbleinput.value = $ui.formatNumber(this.attr.value_initial);
-		this.input = document.createElement('input');
-		this.input.type = 'hidden';
-		this.input.value = this.attr.value_initial;
-		this.input.name = this.attr.value_name;
-		
-		$mt.bind(this.bubble, 'touchstart', this.startBubble);
-		$mt.bind(this.bubble, 'touchmove', this.moveBubble);
-		$mt.bind(this.bubble, 'touchend', this.endBubble);
-		$mt.bind(this.empty, 'touch', this.touchBar);
-		
-		this.inputwrapper.appendChild(this.bubbleinput);
-		this.inputwrapper.appendChild(this.input);
-		this.bubble.appendChild(this.dragthis);
-		this.bubble.appendChild(this.inputwrapper);
-		if(this.subfiller) this.filler.appendChild(this.subfiller);
 		this.bar.appendChild(this.empty);
 		this.bar.appendChild(this.overflow);
 		this.bar.appendChild(this.filler);
 		this.element.appendChild(this.label);
 		this.element.appendChild(this.bar);
 		this.element.appendChild(this.labelmin);
-		if(this.labelcenter) this.element.appendChild(this.labelcenter);
 		this.element.appendChild(this.labelmax);
-		this.element.appendChild(this.bubble);
+		
+		if(enabled === 1) {
+		 	this.bubble = document.createElement('bubble');
+			this.bubble.slider = this;
+			this.bubble.style.left = value_percent + '%';
+			this.dragthis = document.createElement('dragthis');
+			this.dragthis.slider = this;
+			this.inputwrapper = document.createElement('inputwrapper');
+			this.inputwrapper.slider = this;
+			this.bubbleinput = document.createElement('input');
+			this.bubbleinput.slider = this;
+			this.bubbleinput.type = 'text';
+			this.bubbleinput.value = $ui.formatNumber(this.attr.value_initial);
+			this.input = document.createElement('input');
+			this.input.type = 'hidden';
+			this.input.value = this.attr.value_initial;
+			this.input.name = this.attr.value_name;
+
+			$mt.bind(this.bubble, 'touchstart', this.startBubble);
+			$mt.bind(this.bubble, 'touchmove', this.moveBubble);
+			$mt.bind(this.bubble, 'touchend', this.endBubble);
+			$mt.bind(this.empty, 'touch', this.touchBar);
+
+			this.inputwrapper.appendChild(this.bubbleinput);
+			this.inputwrapper.appendChild(this.input);
+			this.bubble.appendChild(this.dragthis);
+			this.bubble.appendChild(this.inputwrapper);
+			this.element.appendChild(this.bubble);
+		}
 	};
 	
 	$ui.Slider.prototype.startBubble = function(event) {
@@ -293,8 +293,21 @@
 	  return String.fromCharCode(o);
 	};
 
-	$ui.Keyboard.types = ['symbol', 'letter', 'back', 'tab', 'capslock', 'enter', 'space'];
+	$ui.Keyboard.types = ['symbol', 'letter', 'back', 'tab', 'capslock', 'enter', 'space', 'hidekeyboard'];
 
+	$ui.Keyboard.prototype.show = function() {
+		this.element.style.display = '';
+		var element = this.element;
+		window.setTimeout(function() {
+			$a.animate(element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 1}); 
+		}, 100);
+	};
+	
+	$ui.Keyboard.prototype.hide = function() {
+		var element = this.element;
+		$a.animate(element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 0}, true, function(event){if(event.currentTarget.style.opacity == 0) event.currentTarget.style.display = 'none';});
+	};
+	
 	$ui.Keyboard.prototype.pressKey = function(event) {
 		var el = event.currentTarget;
 		for(var i=0; i < $ui.Keyboard.types.length; i++) {
@@ -393,6 +406,11 @@
 
 	$ui.Keyboard.prototype.space = function(li) {
 		this.insert(' ');
+	};
+	
+	$ui.Keyboard.prototype.hidekeyboard = function(li) {
+		this.hide();
+		this.input.blur();
 	};
 	
 	// set default values for select

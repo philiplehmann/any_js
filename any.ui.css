@@ -1,25 +1,21 @@
 slider {
 	position: relative;
 	display: block;
-	margin: 0 15px 10px 20px;
+	margin-bottom: 30px;
+	margin-bottom: 10px;
 }
 slider label {
 	display: block;
 	height: 42px;
 	white-space: nowrap;
-	position: relative;
-	left: -20px;
 }
 slider bar {
 	height: 25px;
 	background: white;
-	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
-	border-radius: 5px;
 	overflow: hidden;
 	position: relative;
 	display: block;
-	margin: 0 -15px 0 -20px;
 }
 slider bar empty,
 slider bar overflow,
@@ -30,14 +26,10 @@ slider bar subfiller {
 	display: block;
 }
 slider bar empty {
-	-webkit-box-shadow: inset 0 1px 3px #c5c5c5;
 	-moz-box-shadow: inset 0 1px 3px #c5c5c5;
-	box-shadow: inset 0 1px 3px #c5c5c5;
 	border: 1px solid #8e8e8e;
 	background: white;
-	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
-	border-radius: 5px;
 	overflow: hidden;
 }
 slider bar overflow {
@@ -56,9 +48,6 @@ slider bar filler {
 	background-image: url('../../../images/slider/bar_filler.png');
 	border: 1px solid #021d3a;
 	top: -25px;
-	-webkit-border-radius: 5px;
-	-moz-border-radius: 5px;
-	border-radius: 5px;
 }
 slider bar subfiller {
 	color: #81a4c7;
@@ -73,13 +62,13 @@ slider bar subfiller {
 }
 slider labelmin {
 	position: absolute;
-	left: -20px;
+	left: 0;
 	top: 21px;
 	display: block;
 }
 slider labelmax {
 	position: absolute;
-	right: -15px;
+	right: 0;
 	top: 21px;
 	display: block;
 }
@@ -128,10 +117,7 @@ slider bubble input[type="text"] {
 	line-height: 18px;
 	border: 0 none;
 	text-align: center;
-	background: transparent;
-	-webkit-box-shadow: none;
-	-moz-box-shadow: none;
-	box-shadow: none;
+	background: white;
 	display: block;
 }
 
@@ -153,8 +139,6 @@ slider bubble input[type="text"] {
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
 	border-radius: 5px;
-	-webkit-box-shadow: inset 0 0 1px #000, inset 0 2px 0 #fff;
-	-moz-box-shadow: inset 0 0 1px #000, inset 0 2px 0 #fff;
 	box-shadow: inset 0 0 1px #000, inset 0 2px 0 #fff;
 }
 .keyboard .capslock,
@@ -199,8 +183,6 @@ slider bubble input[type="text"] {
 .keyboard li.pressed,
 .keyboard li.pressedcapslock {
 	background-image: url('/images/keyboard/pressed.png');
-	-webkit-box-shadow: inset 0 0 1px #000, inset 0 -2px 0 #fff;
-	-moz-box-shadow: inset 0 0 1px #000, inset 0 -2px 0 #fff;
 	box-shadow: inset 0 0 1px #000, inset 0 -2px 0 #fff;
 	border: 1px solid #6d6d6d;
 	top: 0;
