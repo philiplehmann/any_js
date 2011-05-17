@@ -51,6 +51,6 @@
 	<li class="symbol"><span class="off">,</span><span class="on">&lt;</span></li>
 	<li class="symbol"><span class="off">.</span><span class="on">&gt;</span></li>
 	<li class="symbol"><span class="off">/</span><span class="on">?</span></li>
-	<li class="right-shift shift lastitem">shift</li>
+	<li class="hidekeyboard lastitem"></li>
 	<li class="space lastitem">&nbsp;</li>
 </ul>

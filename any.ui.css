@@ -175,8 +175,8 @@ slider bubble input[type="text"] {
 .keyboard .left-shift {
 	width: 95px;
 }
-.keyboard .right-shift,
-.keyboard .right-shift.pressed {
+.keyboard .hidekeyboard,
+.keyboard .hidekeyboard.pressed {
 	width: 109px;
 	background-image: url('/images/keyboard/hide.png');
 	background-repeat: no-repeat;

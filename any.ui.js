@@ -113,7 +113,7 @@
 	data-value_min="0"
 	data-value_max="10"
 	data-value_initial="18'000.-"
-	data-value_default="5"
+	data-value_name="mandate_amount"
 	data-unit=" Years"
 	data-accuracy="1 0.1 / 0.01 / 0.05">
 	*/
@@ -134,6 +134,7 @@
 		this.overflow.innerHTML = this.attr.overflow_label || this.attr.overflow_value || '';
 		this.filler = document.createElement('filler');
 		this.filler.slider = this;
+		
 		var value_initial = parseInt(this.attr.value_initial || 0);
 		var value_min = parseInt(this.attr.value_min || 0);
 		var value_max = parseInt(this.attr.value_max || 0);
@@ -142,16 +143,27 @@
 		value_initial = value_initial > value_max ? value_max : value_initial;
 		var value_percent = (100 - overflow_value) / range * (value_initial - value_min);
 		$a.css(this.filler, {left: '0px', width: value_percent + '%'});
-		this.subfiller = document.createElement('subfiller');
-		this.subfiller.slider = this;
-		$a.css(this.subfiller, {width: this.attr.subfiller_value + '%'});
-		this.subfiller.innerHTML = this.attr.subfiller_label || this.attr.subfiller_value || '';
+		
+		// add subfiller if the data is set
+		if(this.attr.subfiller_value && this.attr.subfiller_label) {
+			this.subfiller = document.createElement('subfiller');
+			this.subfiller.slider = this;
+			$a.css(this.subfiller, {width: this.attr.subfiller_value + '%'});
+			this.subfiller.innerHTML = this.attr.subfiller_label || this.attr.subfiller_value || '';
+		}
 		this.labelmin = document.createElement('labelmin');
 		this.labelmin.slider = this;
 		this.labelmin.innerHTML = this.attr.label_min || this.attr.value_min;
 		this.labelmax = document.createElement('labelmax');
 		this.labelmax.slider = this;
 		this.labelmax.innerHTML = this.attr.label_max || this.attr.value_max;
+		
+		if(this.attr.label_center) {
+			this.labelcenter = document.createElement('labelcenter');
+			this.labelcenter.slider = this;
+			this.labelcenter.innerHTML = this.attr.label_center || '';
+		}
+		
 		this.bubble = document.createElement('bubble');
 		this.bubble.slider = this;
 		this.bubble.style.left = value_percent + '%';
@@ -177,13 +189,14 @@
 		this.inputwrapper.appendChild(this.input);
 		this.bubble.appendChild(this.dragthis);
 		this.bubble.appendChild(this.inputwrapper);
-		this.filler.appendChild(this.subfiller);
+		if(this.subfiller) this.filler.appendChild(this.subfiller);
 		this.bar.appendChild(this.empty);
 		this.bar.appendChild(this.overflow);
 		this.bar.appendChild(this.filler);
 		this.element.appendChild(this.label);
 		this.element.appendChild(this.bar);
 		this.element.appendChild(this.labelmin);
+		if(this.labelcenter) this.element.appendChild(this.labelcenter);
 		this.element.appendChild(this.labelmax);
 		this.element.appendChild(this.bubble);
 	};
