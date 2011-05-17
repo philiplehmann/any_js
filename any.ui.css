@@ -7,6 +7,8 @@ slider label {
 	display: block;
 	height: 42px;
 	white-space: nowrap;
+	position: relative;
+	left: -20px;
 }
 slider bar {
 	height: 25px;
@@ -71,13 +73,13 @@ slider bar subfiller {
 }
 slider labelmin {
 	position: absolute;
-	left: 0;
+	left: -20px;
 	top: 21px;
 	display: block;
 }
 slider labelmax {
 	position: absolute;
-	right: 0;
+	right: -15px;
 	top: 21px;
 	display: block;
 }
