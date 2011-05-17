@@ -3,6 +3,7 @@ slider {
 	display: block;
 	margin-bottom: 30px;
 	margin-bottom: 10px;
+	margin: 0 15px 0 20px;
 }
 slider label {
 	display: block;
@@ -12,10 +13,13 @@ slider label {
 slider bar {
 	height: 25px;
 	background: white;
+	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
+	border-radius: 5px;
 	overflow: hidden;
 	position: relative;
 	display: block;
+	margin: 0 -15px 0 -20px;
 }
 slider bar empty,
 slider bar overflow,
@@ -29,7 +33,9 @@ slider bar empty {
 	-moz-box-shadow: inset 0 1px 3px #c5c5c5;
 	border: 1px solid #8e8e8e;
 	background: white;
+	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
+	border-radius: 5px;
 	overflow: hidden;
 }
 slider bar overflow {
@@ -48,6 +54,9 @@ slider bar filler {
 	background-image: url('../../../images/slider/bar_filler.png');
 	border: 1px solid #021d3a;
 	top: -25px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
 }
 slider bar subfiller {
 	color: #81a4c7;
@@ -62,13 +71,13 @@ slider bar subfiller {
 }
 slider labelmin {
 	position: absolute;
-	left: 0;
+	left: -20px;
 	top: 21px;
 	display: block;
 }
 slider labelmax {
 	position: absolute;
-	right: 0;
+	right: -15px;
 	top: 21px;
 	display: block;
 }
