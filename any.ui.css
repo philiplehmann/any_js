@@ -9,6 +9,8 @@ slider label {
 	display: block;
 	height: 42px;
 	white-space: nowrap;
+	position: relative;
+	left: -20px;
 }
 slider bar {
 	height: 25px;
