@@ -172,7 +172,7 @@ slider bubble input[type="text"] {
 }
 .keyboard .hidekeyboard,
 .keyboard .hidekeyboard.pressed {
-	width: 109px;
+	width: 108px !important;
 	background-image: url('/images/keyboard/hide.png');
 	background-repeat: no-repeat;
 	background-position: center center;
