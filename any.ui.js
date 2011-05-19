@@ -228,39 +228,35 @@
 	};
 	
 	$ui.Slider.prototype.moveBubble = function(ev) {
-		//$a.requestAnimationFrame(function() {
-			var slider = ev.currentTarget.slider;
-			
-			
-			var diff = ev.pageX - ev.currentTarget.bubblePosition;
-			if(diff == 0) return;
-			
-			var overflow = slider.overflow ? slider.overflow.clientWidth : 0;
-			var width = slider.bar.clientWidth - overflow - 30;
-			var left = parseInt(slider.bubble.style.left) || 0;
-			
-			var min = parseInt(slider.attr.value_min) || 0;
-			var max = parseInt(slider.attr.value_max) || 0;
-			var range = max - min;
-			
-			left += diff;
-			left = left > width ? width : left;
-			left = left < 0 ? 0 : left;
-			var value = min + range / width * left;
-			
+		var slider = ev.currentTarget.slider;
+		var diff = ev.pageX - ev.currentTarget.bubblePosition;
+		if(diff == 0) return;
+		
+		var overflow = slider.overflow ? slider.overflow.clientWidth : 0;
+		var width = slider.bar.clientWidth - overflow - 30;
+		var left = parseInt(slider.bubble.style.left) || 0;
+		
+		var min = parseInt(slider.attr.value_min) || 0;
+		var max = parseInt(slider.attr.value_max) || 0;
+		var range = max - min;
+		
+		left += diff;
+		left = left > width ? width : left;
+		left = left < 0 ? 0 : left;
+		var value = min + range / width * left;
+		
 
-			slider.bubble.style.left = Math.round(left) + 'px';
-			slider.filler.style.width = Math.round(left+10) + 'px';
-			var accuracy = parseInt(slider.attr.accuracy);
-			if(accuracy) {
-				value = Math.round(value / accuracy) * accuracy;
-			}
-			if(value != parseInt(slider.input.value)) {
-				slider.bubbleinput.value = $ui.formatNumber(value);
-				slider.input.value = value;
-			}
-			ev.currentTarget.bubblePosition = ev.pageX;
-		//});
+		slider.bubble.style.left = Math.round(left) + 'px';
+		slider.filler.style.width = Math.round(left+10) + 'px';
+		var accuracy = parseInt(slider.attr.accuracy);
+		if(accuracy) {
+			value = Math.round(value / accuracy) * accuracy;
+		}
+		if(value != parseInt(slider.input.value)) {
+			slider.bubbleinput.value = $ui.formatNumber(value);
+			slider.input.value = value;
+		}
+		ev.currentTarget.bubblePosition = ev.pageX;
 	};
 	
 	$ui.Slider.prototype.endBubble = function(event) {
