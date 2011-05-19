@@ -91,6 +91,7 @@
 		}
 		
 		this.createSlider();
+		this.element.slider = this;
 		if(this.parent instanceof HTMLElement) {
 			if(element instanceof HTMLElement) {
 				this.parent.replaceChild(this.element, element);
@@ -126,7 +127,7 @@
 		this.element.slider = this;
 		this.label = document.createElement('label');
 		this.element.slider = this;
-		this.label.innerHTML = this.attr.label_main;
+		this.label.innerHTML = this.attr.label_main || '';
 		this.bar = document.createElement('bar');
 		this.bar.slider = this;
 		this.empty = document.createElement('empty');
@@ -159,10 +160,10 @@
 		
 		this.labelmin = document.createElement('labelmin');
 		this.labelmin.slider = this;
-		this.labelmin.innerHTML = this.attr.label_min || this.attr.value_min;
+		this.labelmin.innerHTML = this.attr.label_min || this.attr.value_min || '';
 		this.labelmax = document.createElement('labelmax');
 		this.labelmax.slider = this;
-		this.labelmax.innerHTML = this.attr.label_max || this.attr.value_max;
+		this.labelmax.innerHTML = this.attr.label_max || this.attr.value_max || '';
 		
 		
 		this.bar.appendChild(this.empty);
@@ -220,6 +221,27 @@
 		value -= min;
 		
 		return width / range * value;
+	};
+	
+	$ui.Slider.prototype.setValue = function(value, min, max) {
+		if(min) this.attr.value_min = min;
+		if(max) this.attr.value_max = max;
+		var left = this.getPositionByValue(value);
+		
+		this.bubble.style.left = Math.round(left) + 'px';
+		this.filler.style.width = Math.round(left+10) + 'px';
+		var accuracy = parseInt(this.attr.accuracy);
+		if(accuracy) {
+			value = Math.round(value / accuracy) * accuracy;
+		}
+		if(value != parseInt(this.input.value)) {
+			this.bubbleinput.value = $ui.formatNumber(value);
+			this.input.value = value;
+		}
+	};
+	
+	$ui.Slider.setValue = function(element, value, min, max) {
+		return element.slider.setValue(value, min, max);
 	};
 	
 	$ui.Slider.prototype.startBubble = function(event) {
