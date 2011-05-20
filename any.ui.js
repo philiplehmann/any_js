@@ -25,6 +25,9 @@
 		var sign = attr.sign || '\'';
 		var prefix = attr.prefix || '';
 		var suffix = attr.suffix || '';
+		if(number < 1000) {
+			return prefix + number + suffix;
+		}
 		number = number + "";
 		var arr = [];
 		var index = number.indexOf('.');
@@ -211,8 +214,8 @@
 		var overflow = this.overflow ? this.overflow.clientWidth : 0;
 		var width = this.bar.clientWidth - overflow - 30;
 		
-		var min = parseInt(this.attr.value_min) || 0;
-		var max = parseInt(this.attr.value_max) || 0;
+		var min = parseFloat(this.attr.value_min) || 0;
+		var max = parseFloat(this.attr.value_max) || 0;
 		var range = max - min;
 		
 		value = value < min ? min : value;
@@ -230,9 +233,12 @@
 		
 		this.bubble.style.left = Math.round(left) + 'px';
 		this.filler.style.width = Math.round(left+10) + 'px';
-		var accuracy = parseInt(this.attr.accuracy);
+		var accuracy = parseFloat(this.attr.accuracy);
 		if(accuracy) {
 			value = Math.round(value / accuracy) * accuracy;
+			if(accuracy < 1) {
+				value = Math.round(value * 100) / 100;
+			}
 		}
 		if(value != parseInt(this.input.value)) {
 			this.bubbleinput.value = $ui.formatNumber(value);
@@ -270,11 +276,14 @@
 
 		slider.bubble.style.left = Math.round(left) + 'px';
 		slider.filler.style.width = Math.round(left+10) + 'px';
-		var accuracy = parseInt(slider.attr.accuracy);
+		var accuracy = parseFloat(slider.attr.accuracy);
 		if(accuracy) {
 			value = Math.round(value / accuracy) * accuracy;
+			if(accuracy < 1) {
+				value = Math.round(value * 100) / 100;
+			}
 		}
-		if(value != parseInt(slider.input.value)) {
+		if(value != parseFloat(slider.input.value)) {
 			slider.bubbleinput.value = $ui.formatNumber(value);
 			slider.input.value = value;
 		}
@@ -283,7 +292,6 @@
 	
 	$ui.Slider.prototype.endBubble = function(event) {
 		delete event.currentTarget.bubblePosition;
-		//data.bubbleinput.blur();
 		$ui.fireEvent(event.currentTarget.slider.input, 'change');
 	};
 	
@@ -297,8 +305,8 @@
 	$ui.Slider.prototype.blurInput = function(event) {
 		var slider = event.currentTarget.slider;
 		var value = parseInt(slider.input.value);
-		var min = parseInt(slider.attr.value_min) || 0;
-		var max = parseInt(slider.attr.value_max) || 0;
+		var min = parseFloat(slider.attr.value_min) || 0;
+		var max = parseFloat(slider.attr.value_max) || 0;
 		value = value < min ? min : value;
 		value = value > max ? max : value;
 		slider.bubbleinput.value = $ui.formatNumber(value);
@@ -322,14 +330,17 @@
 		var overflow = slider.overflow ? slider.overflow.clientWidth : 0;
 		var width = slider.bar.clientWidth - overflow - 30;
 		
-		var min = parseInt(slider.attr.value_min) || 0;
-		var max = parseInt(slider.attr.value_max) || 0;
+		var min = parseFloat(slider.attr.value_min) || 0;
+		var max = parseFloat(slider.attr.value_max) || 0;
 		var range = max - min;
 		
 		var value = Math.round(min + range / width * left);
-		var accuracy = parseInt(slider.attr.accuracy);
+		var accuracy = parseFloat(slider.attr.accuracy);
 		if(accuracy) {
 			value = Math.round(value / accuracy) * accuracy;
+			if(accuracy < 1) {
+				value = Math.round(value * 100) / 100;
+			}
 		}
 		
 		if(value != parseInt(slider.input.value)) {
@@ -530,6 +541,9 @@
 		$a.removeClass(options, 'active');
 		$a.addClass(event.currentTarget, 'active');
 		var input = $a.first(event.currentTarget.parentNode, 'input');
-		input.value = $a.data(event.currentTarget, 'value');
+		if(input.value != $a.data(event.currentTarget, 'value')) {
+			input.value = $a.data(event.currentTarget, 'value');
+			$ui.fireEvent(input, 'change');
+		}
 	};
 })(this._anyNoConflict, this._anyMtNoConflict);
