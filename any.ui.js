@@ -431,6 +431,8 @@
 		if($a.hasClass(event.currentTarget, 'shift')) {
 			event.currentTarget.parentNode.keyboard.shift(event.currentTarget);
 		}
+		var otherPressed = $a.all(event.currentTarget.parentNode, 'li.pressed');
+		$a.removeClass(otherPressed, 'pressed');
 	};
 	
 	$ui.Keyboard.prototype.selectInput = function(event) {
