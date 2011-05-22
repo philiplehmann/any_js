@@ -304,7 +304,7 @@
 
 	$ui.Slider.prototype.blurInput = function(event) {
 		var slider = event.currentTarget.slider;
-		var value = parseInt(slider.input.value);
+		var value = parseInt(slider.input.value) || 0;
 		var min = parseFloat(slider.attr.value_min) || 0;
 		var max = parseFloat(slider.attr.value_max) || 0;
 		value = value < min ? min : value;
@@ -389,13 +389,18 @@
 		this.element.style.display = '';
 		var element = this.element;
 		window.setTimeout(function() {
-			$a.animate(element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 1}); 
+			$a.animate(element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 1});
 		}, 100);
+		// select text with double touch
+		//$mt.bind(this.input, 'doubletouch', this.selectInput);
 	};
 	
 	$ui.Keyboard.prototype.hide = function() {
 		var element = this.element;
 		$a.animate(element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 0}, true, function(event){if(event.currentTarget.style.opacity == 0) event.currentTarget.style.display = 'none';});
+		this.input.blur();
+		// select text with double touch
+		//$mt.unbind(this.input, 'doubletouch', this.selectInput);
 	};
 	
 	$ui.Keyboard.prototype.pressKey = function(event) {
@@ -426,6 +431,11 @@
 		if($a.hasClass(event.currentTarget, 'shift')) {
 			event.currentTarget.parentNode.keyboard.shift(event.currentTarget);
 		}
+	};
+	
+	$ui.Keyboard.prototype.selectInput = function(event) {
+		event.currentTarget.selectionStart = 0;
+		event.currentTarget.selectionEnd = this.input.value.length;
 	};
 
 	$ui.Keyboard.prototype.insert = function(sign) {
@@ -480,7 +490,12 @@
 	};
 
 	$ui.Keyboard.prototype.enter = function(li) {
-		
+		if((this.input.nodeName == 'INPUT' || this.input.nodeName == 'BUTTON') && this.input.form) {
+			if($a.isFunc(this.input.form.onsubmit)) this.input.form.onsubmit(this.input.form);
+			this.hide();
+		} else if(this.input.nodeName == 'TEXTAREA') {
+			this.insert($ui.Keyboard.chr(10));
+		}
 	};
 
 	$ui.Keyboard.prototype.shift = function(li) {
@@ -503,7 +518,6 @@
 	
 	$ui.Keyboard.prototype.hidekeyboard = function(li) {
 		this.hide();
-		this.input.blur();
 	};
 	
 	// set default values for select
