@@ -29,6 +29,9 @@
 				data = $a.extend(data, {mozCallback: callback});
 				$a.bind(node, 'MozTouchUp', MOZTouch.touch_end, useCapture, data);
 			break;
+			case 'doubletouch':
+				$mt.bind(node, 'touch', MOZTouch.doubletouch, useCapture, data);
+			break;
 			case 'touchstart':
 				data = $a.extend(data, {mozCallback: callback});
 				$a.bind(node, 'MozTouchDown', MOZTouch.touchDown, useCapture, data);
@@ -73,6 +76,9 @@
 				$a.unbind(node, 'MozTouchCancel', MOZTouch.touch_cancel, useCapture);
 				data = $a.extend(data, {mozCallback: callback});
 				$a.unbind(node, 'MozTouchUp', MOZTouch.touch_end, useCapture, data);
+			break;
+			case 'doubletouch':
+				$mt.unbind(node, 'touch', MOZTouch.doubletouch, useCapture, data);
 			break;
 			case 'touchstart':
 				data = $a.extend(data, {mozCallback: callback});
@@ -133,7 +139,20 @@
 	MOZTouch.touch_cancel = function(event, data) {
 		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'click');
 		MOZTouch.touch_cleanup(mt);
-	}
+	};
+	
+	MOZTouch.doubletouch = function(event, data) {
+		var now = Date.now();
+		var last = event.currentTarget.last_doubletouch || now + 1;
+		var diff = now - last;
+		console.debug("diff %o, now, %o, last %o", diff, now, last);
+		if(diff < 500 && diff > 0) {
+			event.currentTarget.last_doubletouch = 0;
+			return data.mozCallback(event, data);
+		} else {
+			event.currentTarget.last_doubletouch = now;
+		}
+	};
 
 	MOZTouch.touch_cleanup = function(mt) {
 		delete mt.count;
