@@ -146,13 +146,19 @@
 	MOZTouch.doubletouch = function(event, data) {
 		var now = Date.now();
 		var last = event.currentTarget.last_doubletouch || now + 1;
+		var x = event.currentTarget.last_doubleX || -100;
+		var y = event.currentTarget.last_doubleY || -100;
 		var diff = now - last;
+		var diffx = Math.abs(x - event.pageX);
+		var diffy = Math.abs(y - event.pageY);
 		//console.debug("diff %o, now, %o, last %o", diff, now, last);
-		if(diff < 500 && diff > 0) {
+		if(diff < 500 && diff > 0 && diffx < 50 && diffy < 50) {
 			event.currentTarget.last_doubletouch = 0;
 			return data.mozDoubleCallback(event, data);
 		} else {
 			event.currentTarget.last_doubletouch = now;
+			event.currentTarget.last_doubleX = event.pageX;
+			event.currentTarget.last_doubleY = event.pageY;
 		}
 	};
 
