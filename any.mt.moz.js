@@ -151,9 +151,9 @@
 		var diff = now - last;
 		var diffx = Math.abs(x - event.pageX);
 		var diffy = Math.abs(y - event.pageY);
-		//console.debug("diff %o, now, %o, last %o", diff, now, last);
+		//console.debug("element %o diff %o diffx %o diffy %o, now, %o, last %o", event.currentTarget, diff, diffx, diffy, now, last);
 		if(diff < 500 && diff > 0 && diffx < 50 && diffy < 50) {
-			event.currentTarget.last_doubletouch = 0;
+			delete event.currentTarget.last_doubletouch;
 			return data.mozDoubleCallback(event, data);
 		} else {
 			event.currentTarget.last_doubletouch = now;

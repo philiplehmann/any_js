@@ -367,9 +367,9 @@
 		return element.dispatchEvent(evt);
 	};
 	
-	/**
-		keyboard
-	*/
+	/***************************************************************************************************
+	 * keyboard
+	 **************************************************************************************************/
 	$ui.Keyboard = function(element, input) {
 		this.element = element;
 		this.input = input;
@@ -404,7 +404,7 @@
 			$ui.fireEvent(element, 'showkeyboard');
 		}, 100);
 		// select text with double touch
-		//$mt.bind(this.input, 'doubletouch', this.selectInput);
+		$mt.bind(this.input, 'doubletouch', this.selectInput, true);
 	};
 	
 	$ui.Keyboard.prototype.hide = function() {
@@ -418,7 +418,7 @@
 		this.input.blur();
 		$ui.fireEvent(this.element, 'hidekeyboard');
 		// select text with double touch
-		//$mt.unbind(this.input, 'doubletouch', this.selectInput);
+		$mt.unbind(this.input, 'doubletouch', this.selectInput, true);
 	};
 	
 	$ui.Keyboard.prototype.pressKey = function(event) {
@@ -455,7 +455,7 @@
 	
 	$ui.Keyboard.prototype.selectInput = function(event) {
 		event.currentTarget.selectionStart = 0;
-		event.currentTarget.selectionEnd = this.input.value.length;
+		event.currentTarget.selectionEnd = event.currentTarget.value.length;
 	};
 
 	$ui.Keyboard.prototype.insert = function(sign) {
