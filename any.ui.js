@@ -396,6 +396,7 @@
 		var element = this.element;
 		window.setTimeout(function() {
 			$a.animate(element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 1});
+			$ui.fireEvent(element, 'showkeyboard');
 		}, 100);
 		// select text with double touch
 		//$mt.bind(this.input, 'doubletouch', this.selectInput);
@@ -410,6 +411,7 @@
 			}
 		});
 		this.input.blur();
+		$ui.fireEvent(this.element, 'hidekeyboard');
 		// select text with double touch
 		//$mt.unbind(this.input, 'doubletouch', this.selectInput);
 	};
