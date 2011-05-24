@@ -11,7 +11,7 @@
 	
 	var MOZTouch = {};
 	$a.ready(function() {
-		$mt.registerBindHandler(MOZTouch, $a.FIREFOX);
+		$mt.registerBindHandler(MOZTouch, $a.FIREFOX, $a.WINDOWS);
 		$a.bind(document.body, 'MozTouchUp', MOZTouch.cancel_handling);
 	});
 	

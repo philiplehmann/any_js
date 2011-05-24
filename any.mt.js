@@ -22,22 +22,24 @@
 	$mt.VERSION = '0.0.1';
 	
 	$mt.bindHandler = {};
-	$mt.registerBindHandler = function(handler, browser) {
-		this.bindHandler[browser] = handler;
+	$mt.registerBindHandler = function(handler, browser, os) {
+		if(this.bindHandler[browser] == undefined) this.bindHandler[browser] = {};
+		this.bindHandler[browser][os] = handler;
 	};
 	
-	$mt.unregsiterBindHandler = function(browser) {
-		delete this.bindHandler[browser];
+	$mt.unregsiterBindHandler = function(browser, os) {
+		if(this.bindHandler[browser]) delete this.bindHandler[browser][os];
 	}
 	
 	$mt.bind = function(node, event, callback, useCapture, data) {
 		var browser = $a.browserDetection();
+		var os = $a.osDetection();
 		if( ! $a.isArr(node) && ! $a.isCol(node)) {
 			node = [node];
 		}
 		for(var i=0; i < node.length; i++) {
-			if(this.bindHandler[browser]) {
-				this.bindHandler[browser].bind(node[i], event, callback, useCapture, data);
+			if(this.bindHandler[browser] && this.bindHandler[browser][os]) {
+				this.bindHandler[browser][os].bind(node[i], event, callback, useCapture, data);
 			} else {
 				EmulateTouch.bind(node[i], event, callback, useCapture, data);
 			}
@@ -46,12 +48,13 @@
 	
 	$mt.unbind = function(node, event, callback, useCapture, data) {
 		var browser = $a.browserDetection();
+		var os = $a.osDetection();
 		if( ! $a.isArr(node) && ! $a.isCol(node)) {
 			node = [node];
 		}
 		for(var i=0; i < node.length; i++) {
-			if(this.bindHandler[browser]) {
-				this.bindHandler[browser].unbind(node[i], event, callback, useCapture, data);
+			if(this.bindHandler[browser] && this.bindHandler[browser][os]) {
+				this.bindHandler[browser][os].unbind(node[i], event, callback, useCapture, data);
 			} else {
 				EmulateTouch.unbind(node[i], event, callback, useCapture, data);
 			}
@@ -413,7 +416,7 @@
 	};
 	
 	var EmulateTouch = {
-		_mapping: {touch: 'click', touchstart: 'mousedown', touchmove: 'mousemove', touchend: 'mouseup'},
+		_mapping: {touch: 'click', touchstart: 'mousedown', touchmove: 'mousemove', touchend: 'mouseup', doubletouch: 'dblclick'},
 		bind: function(node, event, callback, useCapture, data) {
 			if(this._mapping[event] !== undefined) {
 				return $a.bind(node, this._mapping[event], callback, useCapture, data);

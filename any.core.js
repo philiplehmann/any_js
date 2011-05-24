@@ -48,6 +48,11 @@
 	$a._BROWSERS[$a.FENNEC] = /fennec/gi;
 	$a._BROWSERS[$a.SAFARI] = /version.*safari/gi;
 	$a._BROWSERS[$a.MOBILE_SAFARI] = /version.*mobile.*safari/gi;
+	$a.WINDOWS = 'windows';
+	$a.MACOSX = 'macosx';
+	$a._OS = {};
+	$a._OS[$a.MACOSX] = /Intel MAC OS X*/gi
+	$a._OS[$a.WINDOWS] = /Windows NT */gi
   // return the browser type chrome, firefox, fennic, safari or mobile_safari
 	$a.browserDetection = function() {
 		for(var browser in this._BROWSERS) {
@@ -58,9 +63,22 @@
 		return false;
 	};
 	
+	$a.osDetection = function() {
+		for(var os in this._OS) {
+			if(this.isOS(os)) {
+				return os;
+			}
+		}
+		return false;
+	};
+	
 	// Returns boolen if the given browser is the actual used one
 	$a.isBrowser = function(browser) {
 		return (navigator.userAgent.match($a._BROWSERS[browser]) !== null);
+	};
+	
+	$a.isOS = function(os) {
+		return (navigator.oscpu.match($a._OS[os]) !== null);
 	};
 
   // Returns `true` if supplied object is a function.
