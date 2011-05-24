@@ -81,27 +81,32 @@
 	/**
 	 * slider
 	 */
-	$ui.Slider = function(element) {
-		if(element instanceof HTMLElement) {
-			this.parent = element.parentNode;
-			this.attr = $a.data(element);
-			this.insertBefore = element.nextSibling;
-		} else if($a.isObj(element)) {
-			this.parent = element.parent;
-			this.attr = $a.data(element);
+	$ui.Slider = function(obj) {
+		if(obj instanceof HTMLElement) {
+			this.parent = obj.parentNode;
+			this.replace = obj;
+			this.attr = $a.data(obj);
+			this.insertBefore = obj.nextSibling;
+		} else if($a.isObj(obj)) {
+			this.parent = obj.replace.parentNode;
+			this.replace = obj.replace;
+			if(obj.attr) {
+				this.attr = obj.attr
+			}
 		} else {
 			throw 'got a wrong parameter';
 		}
 		
-		this.createSlider();
-		this.element.slider = this;
+		var el = this.createSlider();
 		if(this.parent instanceof HTMLElement) {
-			if(element instanceof HTMLElement) {
-				this.parent.replaceChild(this.element, element);
+			if(this.replace instanceof HTMLElement) {
+				this.parent.replaceChild(el, this.replace);
 			} else {
-				this.parent.appendChild(this.element);
+				this.parent.appendChild(el);
 			}
 		}
+		var s = $a.first(this.parent, 'slider');
+		s.slider = this;
 	};
 	/*
 	data-label_main="Mandate Amount"
@@ -126,10 +131,9 @@
 		var enabled = parseInt(this.attr.enabled);
 		enabled = isNaN(enabled) ? 1 : enabled;
 		
-		this.element = document.createElement('slider');
-		this.element.slider = this;
+		var element = document.createElement('slider');
+		element.slider = this;
 		this.label = document.createElement('label');
-		this.element.slider = this;
 		this.label.innerHTML = this.attr.label_main || '';
 		this.bar = document.createElement('bar');
 		this.bar.slider = this;
@@ -172,10 +176,10 @@
 		this.bar.appendChild(this.empty);
 		if(this.overflow) this.bar.appendChild(this.overflow);
 		this.bar.appendChild(this.filler);
-		this.element.appendChild(this.label);
-		this.element.appendChild(this.bar);
-		this.element.appendChild(this.labelmin);
-		this.element.appendChild(this.labelmax);
+		element.appendChild(this.label);
+		element.appendChild(this.bar);
+		element.appendChild(this.labelmin);
+		element.appendChild(this.labelmax);
 		
 		if(enabled === 1) {
 		 	this.bubble = document.createElement('bubble');
@@ -206,8 +210,9 @@
 			this.inputwrapper.appendChild(this.input);
 			this.bubble.appendChild(this.dragthis);
 			this.bubble.appendChild(this.inputwrapper);
-			this.element.appendChild(this.bubble);
+			element.appendChild(this.bubble);
 		}
+		return element;
 	};
 	
 	$ui.Slider.prototype.getPositionByValue = function(value) {
