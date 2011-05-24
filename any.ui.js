@@ -82,22 +82,28 @@
 	 * slider
 	 */
 	$ui.Slider = function(obj) {
+		var className = '';
 		if(obj instanceof HTMLElement) {
 			this.parent = obj.parentNode;
 			this.replace = obj;
 			this.attr = $a.data(obj);
 			this.insertBefore = obj.nextSibling;
+			className = obj.className;
 		} else if($a.isObj(obj)) {
 			this.parent = obj.replace.parentNode;
 			this.replace = obj.replace;
 			if(obj.attr) {
 				this.attr = obj.attr
 			}
+			if(this.attr.className) {
+				className = this.attr.className;
+			}
 		} else {
 			throw 'got a wrong parameter';
 		}
 		
 		var el = this.createSlider();
+		el.className = className;
 		if(this.parent instanceof HTMLElement) {
 			if(this.replace instanceof HTMLElement) {
 				this.parent.replaceChild(el, this.replace);
@@ -105,8 +111,7 @@
 				this.parent.appendChild(el);
 			}
 		}
-		var s = $a.first(this.parent, 'slider');
-		s.slider = this;
+		el.slider = this;
 	};
 	/*
 	data-label_main="Mandate Amount"
