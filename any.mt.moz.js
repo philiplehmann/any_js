@@ -30,6 +30,7 @@
 				$a.bind(node, 'MozTouchUp', MOZTouch.touch_end, useCapture, data);
 			break;
 			case 'doubletouch':
+				data = $a.extend(data, {mozDoubleCallback: callback});
 				$mt.bind(node, 'touch', MOZTouch.doubletouch, useCapture, data);
 			break;
 			case 'touchstart':
@@ -78,6 +79,7 @@
 				$a.unbind(node, 'MozTouchUp', MOZTouch.touch_end, useCapture, data);
 			break;
 			case 'doubletouch':
+				data = $a.extend(data, {mozDoubleCallback: callback});
 				$mt.unbind(node, 'touch', MOZTouch.doubletouch, useCapture, data);
 			break;
 			case 'touchstart':
@@ -145,10 +147,10 @@
 		var now = Date.now();
 		var last = event.currentTarget.last_doubletouch || now + 1;
 		var diff = now - last;
-		console.debug("diff %o, now, %o, last %o", diff, now, last);
+		//console.debug("diff %o, now, %o, last %o", diff, now, last);
 		if(diff < 500 && diff > 0) {
 			event.currentTarget.last_doubletouch = 0;
-			return data.mozCallback(event, data);
+			return data.mozDoubleCallback(event, data);
 		} else {
 			event.currentTarget.last_doubletouch = now;
 		}
