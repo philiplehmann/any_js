@@ -391,7 +391,8 @@
 	$ui.Keyboard.types = ['symbol', 'letter', 'back', 'tab', 'capslock', 'enter', 'space', 'hidekeyboard'];
 
 	$ui.Keyboard.prototype.show = function() {
-		this.element.style.display = '';
+		$a.show(this.element);
+		$a.show(this.element.parentNode);
 		var element = this.element;
 		window.setTimeout(function() {
 			$a.animate(element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 1});
@@ -402,7 +403,12 @@
 	
 	$ui.Keyboard.prototype.hide = function() {
 		var element = this.element;
-		$a.animate(element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 0}, true, function(event){if(event.currentTarget.style.opacity == 0) event.currentTarget.style.display = 'none';});
+		$a.animate(element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 0}, true, function(event){
+			if(event.currentTarget.style.opacity == 0) {
+				$a.hide(event.currentTarget);
+				$a.hide(event.currentTarget.parentNode);
+			}
+		});
 		this.input.blur();
 		// select text with double touch
 		//$mt.unbind(this.input, 'doubletouch', this.selectInput);
