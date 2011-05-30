@@ -252,19 +252,23 @@
 	
 	// handlers: touchStartCallbackStart, touchStartCallbackEnd, touchMoveCallbackStart, touchMoveCallbackEnd, touchEndCallbackStart, touchEndCallbackEnd
 	// $mt.moveGesture(element, {gestureMoveCallbackEnd: function(event) {alert(event.rotation;)}});
-	$mt.registerMove = function(element, handlers) {
+	$mt.registerMove = function(element, handlers, move_object) {
 		if(element._move_handlers != undefined) return;
 		element._move_handlers = handlers;
+		element._move_object = move_object || element;
 		$mt.bind(element, 'touchstart', $mt.touchStart);
 		$mt.bind(element, 'touchmove', $mt.touchMove);
 		$mt.bind(element, 'touchend', $mt.touchEnd);
+		$mt.bind(element, 'touchcancel', $mt.touchEnd);
 	};
 	
 	$mt.unregisterMove = function(element) {
 		$mt.unbind(element, 'touchstart', $mt.touchStart);
 		$mt.unbind(element, 'touchmove', $mt.touchMove);
 		$mt.unbind(element, 'touchend', $mt.touchEnd);
+		$mt.unbind(element, 'touchcancel', $mt.touchEnd);
 		delete element._move_handlers;
+		delete element._move_object;
 	};
 	
 	$mt.touchStart = function(event) {
@@ -294,11 +298,11 @@
 			return;
 		}
 
-		var translate = $a.transform(el, 'translate');
+		var translate = $a.transform(el._move_object, 'translate');
 		var translateX = translate.x + (event.pageX - el.touchX);
 		var translateY = translate.y + (event.pageY - el.touchY);
 		$a.requestAnimationFrame(function() {
-			$a.transform(el, 'translate', translateX, translateY);
+			$a.transform(el._move_object, 'translate', translateX, translateY);
 		});
 		
 		el.touchX = event.pageX;
@@ -311,11 +315,12 @@
 	
 	$mt.touchEnd = function(event) {
 		var el = event.currentTarget;
+		if(event.streamId != el.touchSID) return;
+		
 		if($a.isObj(el._move_handlers) && $a.isFunc(el._move_handlers.touchEndCallbackStart)) {
 			el._move_handlers.touchEndCallbackStart(event);
 		}
 		
-		if(event.streamId != el.touchSID) return;
 		delete el.touchX;
 		delete el.touchY;
 		delete el.touchSID;
