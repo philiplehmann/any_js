@@ -75,50 +75,42 @@
 		if( ! attrs.node instanceof HTMLElement) throw 'no node defined';
 		if(attrs.type == undefined) attrs.type = 'vertical';
 		
-		if(attrs.node._scroll == undefined) attrs.node._scroll = {};
-		if(attrs.node._scroll[attrs.type] == undefined) attrs.node._scroll[attrs.type] = {};
-		attrs.node._scroll[attrs.type].attrs = attrs;
+		var node = attrs.node;
+		if(node._scroll == undefined) node._scroll = {};
+		if(node._scroll[attrs.type] == undefined) node._scroll[attrs.type] = attrs;
 
-		$mt.bind(attrs.node, 'touchstart', $mt.scrollStart, false, {type: attrs.type, func: 'start'});
-		$mt.bind(attrs.node, 'touchmove', $mt.scrollMove, false, {type: attrs.type, func: 'move'});
-		$mt.bind(attrs.node, 'touchend', $mt.scrollEnd, false, {type: attrs.type, func: 'end'});
+		$mt.bind(node, 'touchstart', $mt.scrollStart, true, attrs.type);
+		$mt.bind(node, 'touchmove', $mt.scrollMove, true, attrs.type);
+		$mt.bind(node, 'touchend', $mt.scrollEnd, true, attrs.type);
+		$mt.bind(node, 'touchcancel', $mt.scrollEnd, true, attrs.type);
 	};
 	
 	$mt.unscroll = function(node, type) {
-		var node = attrs.node;
-		$mt.unbind(node, 'touchstart', $mt.scrollStart, false, {type: type, func: 'start'});
-		$mt.unbind(node, 'touchmove', $mt.scrollMove, false, {type: type, func: 'move'});
-		$mt.unbind(node, 'touchend', $mt.scrollEnd, false, {type: type, func: 'end'});
+		$mt.unbind(node, 'touchstart', $mt.scrollStart, true, type);
+		$mt.unbind(node, 'touchmove', $mt.scrollMove, true, type);
+		$mt.unbind(node, 'touchend', $mt.scrollEnd, true, type);
+		$mt.unbind(node, 'touchcancel', $mt.scrollEnd, true, type);
 	};
 	
-	$mt.scrollStart = function(event, data) {
+	$mt.scrollStart = function(event, type) {
 		var el = event.currentTarget;
-		if(el._scroll == undefined) el._scroll = {};
-		if(el._scroll[data.type] == undefined) el._scroll[data.type] = {};
-		var scroll = el._scroll[data.type];
+		var scroll = el._scroll[type];
 		scroll.positionY = event.pageY;
 		scroll.positionX = event.pageX;
 		scroll.sid = event.streamId;
-		if($a.isFunc(scroll.attrs.onScrollStart)) {
-			scroll.attrs.onScrollStart(event);
+		if($a.isFunc(scroll.onScrollStart)) {
+			scroll.onScrollStart(event);
 		}
 	};
 	
-	$mt.scrollMove = function(event, data) {
+	$mt.scrollMove = function(event, type) {
 		var el = event.currentTarget;
-		if(el._scroll == undefined) el._scroll = {};
-		if(el._scroll[data.type] == undefined) el._scroll[data.type] = {};
-		var scroll = el._scroll[data.type];
-		var scrollNode = scroll.attrs.node;
-		var node = scrollNode.children[0];
+		var scroll = el._scroll[type];
+		var node = el.children[0];
 		if(scroll.sid != event.streamId) return;
 		
-		/*if(Math.abs(scroll.positionY - event.pageY) < Math.abs(scroll.positionX - event.pageX)) {
-			return;
-		}*/
-		
 		var diff = 0;
-		if(data.type == 'vertical') {
+		if(type == 'vertical') {
 			diff = scroll.positionY - event.pageY;
 		} else {
 			diff = scroll.positionX - event.pageX;
@@ -127,17 +119,15 @@
 			return;
 		}
 		
-		var margin = data.type == 'vertical' ? node.style.marginTop : node.style.marginLeft;
-		var contentSize = data.type == 'vertical' ? scrollNode.clientHeight : scrollNode.clientWidth;
-		var scrollSize = data.type == 'vertical' ? node.clientHeight : node.clientWidth;
+		var margin = type == 'vertical' ? node.style.marginTop : node.style.marginLeft;
+		var contentSize = type == 'vertical' ? el.clientHeight : el.clientWidth;
+		var scrollSize = type == 'vertical' ? node.clientHeight : node.clientWidth;
 		margin = margin == "" ? 0 : parseInt(margin);
 		var maxSize = contentSize - scrollSize;
 		var position = margin - diff;
-		
 		position = position < maxSize ? maxSize : position;
 		position = position > 0 ? 0 : position;
-		
-		if(data.type == 'vertical') {
+		if(type == 'vertical') {
 			node.style.marginTop = position + 'px';
 		} else {
 			node.style.marginLeft = position + 'px';
@@ -145,18 +135,18 @@
 		scroll.positionY = event.pageY;
 		scroll.positionX = event.pageX;
 		
-		if($a.isFunc(scroll.attrs.onScrollMove)) {
-			scroll.attrs.onScrollMove(event);
+		if($a.isFunc(scroll.onScrollMove)) {
+			scroll.onScrollMove(event);
 		}
 	};
 	
-	$mt.scrollEnd = function(event, data) {
+	$mt.scrollEnd = function(event, type) {
 		var el = event.currentTarget;
-		if(el._scroll == undefined) el._scroll = {};
-		if(el._scroll[data.type] == undefined) el._scroll[data.type] = {};
-		var scroll = el._scroll[data.type];
-		if($a.isFunc(scroll.attrs.onScrollEnd)) {
-			scroll.attrs.onScrollEnd(event);
+		var scroll = el._scroll[type];
+		delete scroll.positionY;
+		delete scroll.positionX;
+		if($a.isFunc(scroll.onScrollEnd)) {
+			scroll.onScrollEnd(event);
 		}
 	};
 	
@@ -168,8 +158,9 @@
 	 *   minSpeed - default 1
 	 *   startAfter - default 20
 	 *   onSwipeStart
-	 *   onSwipeMove, 
+	 *   onSwipeMove 
 	 *   onSwipeEnd
+	 *   callback - called after swipe when conditions match
 	 * }
 	 */
 	$mt.swipe = function(attrs) {
@@ -178,52 +169,63 @@
 		if(attrs.minSpeed == undefined) attrs.minSpeed = 1;
 		if(attrs.type == undefined) attrs.type = 'horizontal';
 		
-		if(attrs.node._swipe == undefined) attrs.node._swipe = {};
-		if(attrs.node._swipe[attrs.type] == undefined) attrs.node._swipe[attrs.type] = {};
-		attrs.node._swipe[attrs.type].attrs = attrs;
+		var el = attrs.node;
+		delete attrs.node;
+		if(el._swipe == undefined) el._swipe = {};
+		if(el._swipe[attrs.type] == undefined) el._swipe[attrs.type] = attrs;
 
-		var type = {type: attrs.type};
-
-		$mt.bind(attrs.node, 'touchstart', $mt.swipeStart, false, type);
-		$mt.bind(attrs.node, 'touchmove', $mt.swipeMove, false, type);
-		$mt.bind(attrs.node, 'touchend', $mt.swipeEnd, false, type);
+		$mt.bind(el, 'touchstart', $mt.swipeStart, true, attrs.type);
+		$mt.bind(el, 'touchmove', $mt.swipeMove, true, attrs.type);
+		$mt.bind(el, 'touchend', $mt.swipeEnd, true, attrs.type);
 	};
 	
 	$mt.unswipe = function(node, type) {
-		$mt.unbind(node, 'touchstart', $mt.swipeStart, false, {type: type, func: 'start'});
-		$mt.unbind(node, 'touchmove', $mt.swipeMove, false, {type: type, func: 'move'});
-		$mt.unbind(node, 'touchend', $mt.swipeEnd, false, {type: type, func: 'end'});
+		$mt.unbind(node, 'touchstart', $mt.swipeStart, true, type);
+		$mt.unbind(node, 'touchmove', $mt.swipeMove, true, type);
+		$mt.unbind(node, 'touchend', $mt.swipeEnd, true, type);
 	}
 	
-	$mt.swipeStart = function(event, data) {
+	$mt.swipeStart = function(event, type) {
 		var el = event.currentTarget;
-		if(el._swipe == undefined) el._swipe = {};
-		if(el._swipe[data.type] == undefined) el._swipe[data.type] = {};
-		var swipe = el._swipe[data.type];
+		var swipe = el._swipe[type];
 		swipe.tsStart = Date.now();
-		if($a.isFunc(swipe.attrs.onSwipeStart)) {
-			swipe.attrs.onSwipeStart(event);
+		swipe.startPoint = event;
+		if($a.isFunc(swipe.onSwipeStart)) {
+			swipe.onSwipeStart(event);
 		}
 	};
 	
-	$mt.swipeMove = function(event, data) {
+	$mt.swipeMove = function(event, type) {
 		var el = event.currentTarget;
-		if(el._swipe == undefined) el._swipe = {};
-		if(el._swipe[data.type] == undefined) el._swipe[data.type] = {};
-		var swipe = el._swipe[data.type];
-		if($a.isFunc(swipe.attrs.onSwipeMove)) {
-			swipe.attrs.onSwipeMove(event);
+		var swipe = el._swipe[type];
+		if($a.isFunc(swipe.onSwipeMove)) {
+			swipe.onSwipeMove(event);
 		}
 	};
 	
-	$mt.swipeEnd = function(event, data) {
+	$mt.swipeEnd = function(event, type) {
 		var el = event.currentTarget;
-		if(el._swipe == undefined) el._swipe = {};
-		if(el._swipe[data.type] == undefined) el._swipe[data.type] = {};
-		var swipe = el._swipe[data.type];
-		if($a.isFunc(swipe.attrs.onSwipeEnd)) {
-			swipe.attrs.onSwipeEnd(event);
+	  
+		var swipe = el._swipe[type];
+		
+		if($a.isFunc(swipe.onSwipeEnd)) {
+			swipe.onSwipeEnd(event);
 		}
+		
+		var xdiff = swipe.startPoint.pageX - event.pageX;
+		var ydiff = swipe.startPoint.pageY - event.pageY;
+		if((Math.abs(ydiff) > Math.abs(xdiff) && type == 'horizontal') || (Math.abs(ydiff) < Math.abs(xdiff) && type == 'vertical')) {
+		  swipe.startPoint = null;
+			return;
+		}
+		if(Math.abs(xdiff) > swipe.startAfter || Math.abs(ydiff) > swipe.startAfter) {
+			if(type == 'horizontal') {
+			  swipe.callback(xdiff > 0 ? 1 : -1);
+			} else if(type == 'vertical') {
+			  swipe.callback(ydiff > 0 ? 1 : -1);
+			}
+		}
+		swipe.startPoint = null;
 	};
 	
 	$mt.draw = {};
@@ -410,14 +412,15 @@
 	};
 	
 	$mt.escapeElement = function(element) {
-		element.onclick = function(event){return false;};
-		element.onmousedown = function(event){return false;};
-		element.onmousemove = function(event){return false;};
-		element.onmouseup = function(event){return false;};
-		element.onmouseover = function(event){return false;};
-		element.onmouseout = function(event){return false;};
-		element.onmouseenter = function(event){return false;};
-		element.onmouseleave = function(event){return false;};
+	  var func = function(evt){evt.preventDefault();return false;};
+		element.onclick = func;
+		element.onmousedown = func;
+		element.onmousemove = func;
+		element.onmouseup = func;
+		element.onmouseover = func;
+		element.onmouseout = func;
+		element.onmouseenter = func;
+		element.onmouseleave = func;
 	};
 	
 	var EmulateTouch = {
