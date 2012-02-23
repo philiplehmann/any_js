@@ -51,8 +51,8 @@
 	$a.WINDOWS = 'windows';
 	$a.MACOSX = 'macosx';
 	$a._OS = {};
-	$a._OS[$a.MACOSX] = /Intel MAC OS X*/gi
-	$a._OS[$a.WINDOWS] = /Windows NT */gi
+	$a._OS[$a.MACOSX] = /Mac*/gi
+	$a._OS[$a.WINDOWS] = /Win*/gi
   // return the browser type chrome, firefox, fennic, safari or mobile_safari
 	$a.browserDetection = function() {
 		for(var browser in this._BROWSERS) {
@@ -78,7 +78,7 @@
 	};
 	
 	$a.isOS = function(os) {
-		return (navigator.oscpu.match($a._OS[os]) !== null);
+		return (navigator.platform.match($a._OS[os]) !== null);
 	};
 
   // Returns `true` if supplied object is a function.
@@ -507,7 +507,7 @@
     if ( ! node.classList) node.classList = new this._ClassList(node);
     return node.classList.toggle(className);
   };
-
+  
   /**
    * animate node with css transition
    *
@@ -563,8 +563,8 @@
       this.bind(node, 'oTransitionEnd', this._animationCleanup);
       this.bind(node, 'transitionend', this._animationCleanup);
     }
-
-    this.css(node, cssObj);
+    $a.css(node, cssObj);
+    
   };
 
   // Private: reset animation properties after transisition ended.
@@ -578,6 +578,7 @@
 
 		if($a.isFunc(event.currentTarget._animation_callback)) {
 			event.currentTarget._animation_callback(event);
+			delete event.currentTarget._animation_callback;
 		}
   };
 
@@ -743,7 +744,7 @@
 
     var httpRequest = new XMLHttpRequest();
 		if(params.async) {
-    	httpRequest.onreadystatechange = function() { 
+    	httpRequest.onreadystatechange = function() {
 	      if (httpRequest.readyState == 4) {
 	        if (httpRequest.status == 200) {
 	          if($a.isFunc(params.onsuccess)) {
