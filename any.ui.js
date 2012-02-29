@@ -580,4 +580,62 @@
 			$ui.fireEvent(input, 'change');
 		}
 	};
+	
+	/**
+	 * autocomplete for input fields
+	 *
+   * node - htmlelement
+   * source - url to source
+   * callback - optional / function(object) {} / object { value: 1, desc: 'element1' }
+   * min - optional / length of min search text
+   */
+	$ui.autocomplete = function(params) {
+	  var node = params.node;
+	  var source = params.source;
+	  var callback = params.callback;
+	  var min = params.min | 3;
+	  if(node.nodeName != 'INPUT') return; // just work with input fields
+	  $a.bind(node, 'keydown', function(evt) {
+	    if(this.value.length < min) return;
+	    $a.ajax({url: source, data: {search: this.value}, onsuccess: function(request) {
+	      var obj = JSON.parse(request.responseText);
+	      if( ! $a.isArr(obj)) {
+	        throw 'type of result is not an array';
+	      }
+	      var ac = $a.first(node.parentNode, 'div.autocompleter');
+	      var ul = null;
+	      if( ! ac ) {
+	        ac = document.createElement('div');
+	        $a.addClass(ac, 'autocompleter');
+	        ul = document.createElement('ul');
+  	      ac.appendChild(ul);
+	      } else {
+	        ul = $a.first(ac, 'ul');
+	      }
+	      $a.css(ac, {position: 'absolute'});
+	      
+	      var all = $a.all(ul, 'li');
+	      for(var i=0; i < all.length; i++) {
+	        ul.removeChild(all[i]);
+	      }
+	      
+	      obj.forEach(function(o, i) {
+	        if($a.isFunc(callback)) {
+	          callback.call(ul, o);
+	        } else {
+	          var li = document.createElement('li');
+	          li.innerHTML = o.desc;
+	          $a.data(li, 'value', o.value);
+	          ul.appendChild(li);
+	        }
+	      });
+	      var next = node.nextElementSibling;
+	      if(next) {
+	        node.parentNode.insertBefore(ac, next);
+	      } else {
+	        node.parentNode.appendChild(ac);
+	      }
+	    }})
+	  });
+	};
 })(this._anyNoConflict, this._anyMtNoConflict);
