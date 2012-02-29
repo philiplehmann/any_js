@@ -723,6 +723,8 @@
    *    onerror optional
    *    method GET|POST default GET
    *		async true|false default true
+   *
+   *    mozilla documentation https://developer.mozilla.org/en/XMLHttpRequest
    * }
    */
   $a.ajax = function(params) {
@@ -732,7 +734,7 @@
 		if(this.isObj(params.data) && params.data != undefined) {
 			var arr = [];
 			for(var key in params.data) {
-				arr.push(key + '=' + encodeURIComponent(params.data[key]));
+				arr.push(encodeURIComponent(key) + '=' + encodeURIComponent(params.data[key]));
 			}
 			params.data = arr.join('&');
 		}
@@ -759,9 +761,110 @@
 	    };
 		}
     httpRequest.open(params.method, params.url, params.async);
+    httpRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
     httpRequest.send(params.data);
 		if( ! params.async) {
 			return httpRequest.responseText;
 		}
+  };
+  
+  $a.getValue = function(element) {
+    var name = element.nodeName.toLowerCase();
+    switch(name) {
+      case 'input':
+        switch (element.type.toLowerCase()) {
+          case 'checkbox':
+          case 'radio':
+            return element.checked ? element.value : null;
+          default:
+            return element.value;
+        }
+      case 'textarea':
+        return element.value;
+      case 'select':
+        if(element.type === 'select-one') {
+          var index = element.selectedIndex;
+          return index >= 0 ? element.options[index].value : null;
+        } else {
+          var values = [], length = element.options.length;
+          if (!length) return null;
+          for (var i = 0; i < length; i++) {
+            if (element.options[i].selected) {
+              values.push(element.options[i].value);
+            }
+          }
+          return values;
+        }
+      default:
+        return null;
+    }
+  }
+  
+  if (!Array.prototype.filter) {
+    Array.prototype.filter = function(fun) {
+      if (this == null) {
+        throw new TypeError();
+      }
+      var t = Object(this);
+      var len = t.length >>> 0;
+      if (typeof fun != "function") {
+        throw new TypeError();
+      }
+      var res = [];
+      var thisp = arguments[1];
+      for (var i = 0; i < len; i++) {
+        if (i in t) {
+          var val = t[i]; // in case fun mutates this
+          if (fun.call(thisp, val, i, t)) {
+            res.push(val);
+          }
+        }
+      }
+      return res;
+    };
+  }
+  
+  $a.serialize = function(form, type) {
+    type = type | 'url';
+    var elements = form.elements, 
+        len = elements.length,
+        initial;
+    var hashRun = function(obj, keys, value, isArr) {
+      var key = keys.shift();
+      if(keys.length == 0) {
+        if(isArr) {
+          if(key in obj) {
+            obj[key].push(value);
+          } else {
+            obj[key] = [value];
+          }
+        } else {
+          obj[key] = value;
+        }
+        return;
+      }
+      if(!(key in obj)) {
+        obj[key] = {};
+      }
+      run(obj[key], keys, value, isArr);
+    }
+    for(var i=0; i < len; i++) {
+      var el = elements[i];
+      if (!el.disabled && el.name) {
+        var value = $a.getValue(el);
+        if (value != null && el.type != 'file' && el.type != 'submit') {
+          if(type === 'hash') {
+            initial = initial || {};
+            var isArr = el.name.match(/(\[\])$/) !== null,
+                keys = el.name.split(/(\[|\])/).filter(function(s) { return s != '' && s != '[' && s != ']' });
+            hashRun(initial, keys, value, isArr);
+          } else {
+            initial = initial || '';
+            initial += (initial ? '&' : '') + encodeURIComponent(el.name) + '=' + encodeURIComponent(value);
+          }
+        }
+      }
+    }
+    return initial;
   };
 })();
