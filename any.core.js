@@ -765,6 +765,8 @@
     httpRequest.send(params.data);
 		if( ! params.async) {
 			return httpRequest.responseText;
+		} else {
+		  return httpRequest;
 		}
   };
   

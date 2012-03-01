@@ -589,6 +589,7 @@
    * callback - optional / function(object) {} / object { value: 1, desc: 'element1' }
    * min - optional / length of min search text
    */
+  var autocomplete_request = null;
 	$ui.autocomplete = function(params) {
 	  var node = params.node;
 	  var source = params.source;
@@ -597,7 +598,11 @@
 	  if(node.nodeName != 'INPUT') return; // just work with input fields
 	  $a.bind(node, 'keydown', function(evt) {
 	    if(this.value.length < min) return;
-	    $a.ajax({url: source, data: {search: this.value}, onsuccess: function(request) {
+	    if(autocomplete_request) {
+	      autocomplete_request.abort();
+	    }
+	    autocomplete_request = $a.ajax({url: source, data: {search: this.value}, onsuccess: function(request) {
+	      autocomplete_request = null;
 	      var obj = JSON.parse(request.responseText);
 	      if( ! $a.isArr(obj)) {
 	        throw 'type of result is not an array';
