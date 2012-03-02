@@ -587,44 +587,62 @@
    * node - htmlelement
    * source - url to source
    * callback - optional / function(object) {} / object { value: 1, desc: 'element1' }
-   * min - optional / length of min search text
+   * min - optional / length of min search text default 3
+   * limit - optional / count of results show default 10
    */
   var autocomplete_request = null;
 	$ui.autocomplete = function(params) {
 	  var node = params.node;
 	  var source = params.source;
 	  var callback = params.callback;
-	  var min = params.min | 3;
+	  var min = params.min || 3;
+	  var limit = params.limit || 10;
 	  if(node.nodeName != 'INPUT') return; // just work with input fields
-	  $a.bind(node, 'keydown', function(evt) {
-	    if(this.value.length < min) return;
+	  var handlePress = function(evt) {
+	    if(this._autocomplete_value == this.value) return;
+	    
+	    this._autocomplete_value = this.value;
+	    var input = this;
+	    if(this.value.length < min) {
+	      if(input._ac) {
+  	      $a.css(input._ac, {display: 'none'});
+  	    }
+	      return;
+	    }
 	    if(autocomplete_request) {
 	      autocomplete_request.abort();
 	    }
-	    autocomplete_request = $a.ajax({url: source, data: {search: this.value}, onsuccess: function(request) {
+	    autocomplete_request = $a.ajax({url: source, data: {search: this.value, limit: limit}, onsuccess: function(request) {
 	      autocomplete_request = null;
 	      var obj = JSON.parse(request.responseText);
-	      if( ! $a.isArr(obj)) {
+	      if( ! $a.isObj(obj) || ! $a.isArr(obj.data) || ! $a.isNum(obj.count)) {
 	        throw 'type of result is not an array';
 	      }
-	      var ac = $a.first(node.parentNode, 'div.autocompleter');
-	      var ul = null;
-	      if( ! ac ) {
-	        ac = document.createElement('div');
-	        $a.addClass(ac, 'autocompleter');
-	        ul = document.createElement('ul');
-  	      ac.appendChild(ul);
-	      } else {
-	        ul = $a.first(ac, 'ul');
+	      if(obj.count == 0) {
+	        if(input._ac) {
+	          $a.css(input._ac, {display: 'none'});
+          }
+	        return;
 	      }
-	      $a.css(ac, {position: 'absolute'});
+	      
+	      var ul = null;
+	      if( ! input._ac ) {
+	        input._ac = document.createElement('div');
+	        $a.css(input._ac, { left: input.offsetLeft + 'px', top: input.offsetTop + input.clientHeight + 'px', position: 'absolute', width: input.clientWidth + 'px' });
+	        
+	        $a.addClass(input._ac, 'autocompleter');
+	        ul = document.createElement('ul');
+  	      input._ac.appendChild(ul);
+	      } else {
+	        ul = $a.first(input._ac, 'ul');
+	      }
 	      
 	      var all = $a.all(ul, 'li');
 	      for(var i=0; i < all.length; i++) {
 	        ul.removeChild(all[i]);
 	      }
 	      
-	      obj.forEach(function(o, i) {
+	      obj.data.forEach(function(o, i) {
 	        if($a.isFunc(callback)) {
 	          callback.call(ul, o);
 	        } else {
@@ -634,13 +652,63 @@
 	          ul.appendChild(li);
 	        }
 	      });
+	      if(obj.count > obj.data.length) {
+	        var li = document.createElement('li');
+	        li.innerHTML = obj.data.length + ' von ' + obj.count
+	        $a.addClass(li, 'info');
+	        ul.appendChild(li);
+	      }
+	      $a.css(input._ac, {display: ''});
 	      var next = node.nextElementSibling;
 	      if(next) {
-	        node.parentNode.insertBefore(ac, next);
+	        node.parentNode.insertBefore(input._ac, next);
 	      } else {
-	        node.parentNode.appendChild(ac);
+	        node.parentNode.appendChild(input._ac);
 	      }
 	    }})
+	  };
+	  
+	  var handleArrows = function(evt) {
+	    if(this._ac && (evt.keyIdentifier.toLowerCase() == 'down' || evt.keyIdentifier.toLowerCase() == 'up')) {
+	      evt.preventDefault();
+	      var el = null;
+	      var active = $a.first(this._ac, 'li[data-value].active');
+	      if(!active) {
+	        el = $a.first(this._ac, 'li[data-value]:first-child');
+	      }
+	      if(active && evt.keyIdentifier.toLowerCase() == 'down') {
+	        el = active.nextElementSibling;
+	      } else if(active && evt.keyIdentifier.toLowerCase() == 'up') {
+	        el = active.previousElementSibling;
+	      }
+	      if(el && $a.data(el, 'value')) {
+	        if(active) $a.removeClass(active, 'active');
+	        $a.addClass(el, 'active');
+	      }
+	      return false;
+	    } else if(this._ac && evt.keyIdentifier.toLowerCase() == 'enter') {
+	      evt.preventDefault();
+	      var active = $a.first(this._ac, 'li[data-value].active');
+	      if(active) {
+	        this._autocomplete_value = this.value = $a.data(active, 'value');
+	        $a.css(this._ac, {display: 'none'});
+	        return;
+	      }
+	    } if(this._ac && evt.keyCode == 27 /*esc*/) {
+	      evt.preventDefault();
+	      $a.css(this._ac, {display: 'none'});
+	      return;
+	    }
+	  };
+	  
+	  $a.bind(node, 'keydown', handleArrows);
+	  $a.bind(node, 'keyup', handlePress);
+	  //$a.bind(node, 'keypress', handlePress);
+	  
+	  $a.bind(node, 'blur', function(evt) {
+	    if(this._ac) {
+	      $a.css(this._ac, {display: 'none'});
+	    }
 	  });
 	};
 })(this._anyNoConflict, this._anyMtNoConflict);

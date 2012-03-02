@@ -723,6 +723,7 @@
    *    onerror optional
    *    method GET|POST default GET
    *		async true|false default true
+   *    type   JSON
    *
    *    mozilla documentation https://developer.mozilla.org/en/XMLHttpRequest
    * }
@@ -731,7 +732,7 @@
     if(params.method == undefined) params.method = 'GET';
 		if(params.async == undefined) params.async = true;
 		
-		if(this.isObj(params.data) && params.data != undefined) {
+		if(params.method == 'GET' && this.isObj(params.data) && params.data != undefined) {
 			var arr = [];
 			for(var key in params.data) {
 				arr.push(encodeURIComponent(key) + '=' + encodeURIComponent(params.data[key]));
@@ -739,10 +740,13 @@
 			params.data = arr.join('&');
 		}
 		if(params.method == 'GET' && params.data != undefined) {
-      params.url = params.url + '?' + params.data;
+      params.url = params.url + (params.url.indexOf('?') === -1 ? '?' : '&') + params.data;
       params.data = null;
+    } else if(params.method == 'POST' && params.data != undefined) {
+      if($a.isObj(params.data)) {
+        params.data = JSON.stringify(params.data);
+      }
     }
-    
 
     var httpRequest = new XMLHttpRequest();
 		if(params.async) {
@@ -762,6 +766,7 @@
 		}
     httpRequest.open(params.method, params.url, params.async);
     httpRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    if(params.method == 'POST') httpRequest.setRequestHeader('Content-Type', 'application/json');
     httpRequest.send(params.data);
 		if( ! params.async) {
 			return httpRequest.responseText;
@@ -827,7 +832,7 @@
   }
   
   $a.serialize = function(form, type) {
-    type = type | 'url';
+    type = type || 'url';
     var elements = form.elements, 
         len = elements.length,
         initial;
@@ -848,14 +853,14 @@
       if(!(key in obj)) {
         obj[key] = {};
       }
-      run(obj[key], keys, value, isArr);
+      hashRun(obj[key], keys, value, isArr);
     }
     for(var i=0; i < len; i++) {
       var el = elements[i];
       if (!el.disabled && el.name) {
         var value = $a.getValue(el);
         if (value != null && el.type != 'file' && el.type != 'submit') {
-          if(type === 'hash') {
+          if(type === 'json') {
             initial = initial || {};
             var isArr = el.name.match(/(\[\])$/) !== null,
                 keys = el.name.split(/(\[|\])/).filter(function(s) { return s != '' && s != '[' && s != ']' });
