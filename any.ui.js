@@ -600,6 +600,7 @@
 	  if(node.nodeName != 'INPUT') return; // just work with input fields
 	  var handlePress = function(evt) {
 	    if(this._autocomplete_value == this.value) return;
+	    if( ! this.hasFocus) return;
 	    
 	    this._autocomplete_value = this.value;
 	    var input = this;
@@ -652,6 +653,13 @@
 	          ul.appendChild(li);
 	        }
 	      });
+	      
+	      $a.bind($a.all(ul, 'li'), 'mousedown', function(evt) {
+	        self._autocomplete_value = node.value = $a.data(this, 'value');
+	        $a.css(node._ac, {display: 'none'});
+	        return;
+	      });
+	      
 	      if(obj.count > obj.data.length) {
 	        var li = document.createElement('li');
 	        li.innerHTML = obj.data.length + ' von ' + obj.count
@@ -704,8 +712,11 @@
 	  $a.bind(node, 'keydown', handleArrows);
 	  $a.bind(node, 'keyup', handlePress);
 	  //$a.bind(node, 'keypress', handlePress);
-	  
+	  $a.bind(node, 'focus', function(evt) {
+	    this.hasFocus = true;
+	  })
 	  $a.bind(node, 'blur', function(evt) {
+	    this.hasFocus = false;
 	    if(this._ac) {
 	      $a.css(this._ac, {display: 'none'});
 	    }
