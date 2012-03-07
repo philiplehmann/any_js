@@ -600,7 +600,6 @@
 	  if(node.nodeName != 'INPUT') return; // just work with input fields
 	  var handlePress = function(evt) {
 	    if(this._autocomplete_value == this.value) return;
-	    if( ! this.hasFocus) return;
 	    
 	    this._autocomplete_value = this.value;
 	    var input = this;
@@ -615,10 +614,15 @@
 	    }
 	    autocomplete_request = $a.ajax({url: source, data: {search: this.value, limit: limit}, onsuccess: function(request) {
 	      autocomplete_request = null;
+	      // exit, field does not have focus anymore
+  	    if( ! node.hasFocus) return;
+  	    // parse response
 	      var obj = JSON.parse(request.responseText);
+	      // response have wrong format
 	      if( ! $a.isObj(obj) || ! $a.isArr(obj.data) || ! $a.isNum(obj.count)) {
 	        throw 'type of result is not an array';
 	      }
+	      // exit if response does have an empty result
 	      if(obj.count == 0) {
 	        if(input._ac) {
 	          $a.css(input._ac, {display: 'none'});
