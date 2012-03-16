@@ -136,7 +136,7 @@
 		scroll.positionX = event.pageX;
 		
 		if($a.isFunc(scroll.onScrollMove)) {
-			scroll.onScrollMove(event);
+			scroll.onScrollMove(event, position);
 		}
 	};
 	
