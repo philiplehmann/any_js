@@ -385,6 +385,26 @@
 			return Sizzle(query, node);
 		}
 	};
+  
+  // Find parentNode with a css selector
+  $a.parent = function() {
+    var node = arguments.length > 1 ? arguments[0] : defaultNode;
+    var query = arguments.length > 1 ? arguments[1] : arguments[0];
+    
+    if(query) {
+      var all = $a.all(query);
+      var obj = node.parentNode;
+      while(obj != null) {
+        if(Array.prototype.indexOf.call(all, obj) !== -1) {
+          return obj;
+        }
+        obj = obj.parentNode;
+      }
+    } else {
+      return node.parentNode;
+    }
+    return null;
+  }
 
   // Build nodes from HTML snippet.
   $a.html = function(html) {
