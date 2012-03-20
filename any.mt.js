@@ -65,89 +65,103 @@
 	 * scroll a node subnode
 	 * obj {
 	 * 	 node - HTMLElement 
+   *   wrapper - HTMLElement to scroll in node - optional
 	 *   type - horizontal | vertical - default vertical
 	 *   onScrollStart
 	 *   onScrollMove, 
 	 *   onScrollEnd
 	 * }
 	 */
-	$mt.scroll = function(attrs) {
-		if( ! attrs.node instanceof HTMLElement) throw 'no node defined';
-		if(attrs.type == undefined) attrs.type = 'vertical';
-		
-		var node = attrs.node;
-		if(node._scroll == undefined) node._scroll = {};
-		if(node._scroll[attrs.type] == undefined) node._scroll[attrs.type] = attrs;
+  $mt.Scroll = function(attrs) {
+    this.node = attrs.node;
+    this.wrapper = attrs.wrapper || this.node.children[0];
+    this.type = attrs.type;
+    this.start = attrs.onScrollStart;
+    this.move = attrs.onScrollMove;
+    this.end = attrs.onScrollMove;
+    
+    this.node.scrollClass = this;
 
-		$mt.bind(node, 'touchstart', $mt.scrollStart, true, attrs.type);
-		$mt.bind(node, 'touchmove', $mt.scrollMove, true, attrs.type);
-		$mt.bind(node, 'touchend', $mt.scrollEnd, true, attrs.type);
-		$mt.bind(node, 'touchcancel', $mt.scrollEnd, true, attrs.type);
+		$mt.bind(this.node, 'touchstart', this.touchstart, true);
+		$mt.bind(this.node, 'touchmove', this.touchmove, true);
+		$mt.bind(this.node, 'touchend', this.touchend, true);
+		$mt.bind(this.node, 'touchcancel', this.touchend, true);
+  }
+  
+  $mt.Scroll.prototype = {
+    unbind: function() {
+  		$mt.unbind(this.node, 'touchstart', this.touchstart, true);
+  		$mt.unbind(this.node, 'touchmove', this.touchmove, true);
+  		$mt.unbind(this.node, 'touchend', this.touchend, true);
+  		$mt.unbind(this.node, 'touchcancel', this.touchend, true);
+    },
+    
+    touchstart: function(evt) {
+  		var self = this.scrollClass;
+      if(self.block === true) return;
+  		self.positionY = evt.pageY;
+  		self.positionX = evt.pageX;
+  		self.sid = evt.streamId;
+  		if($a.isFunc(self.start)) {
+  			self.start.call(this, evt);
+  		}
+    },
+    
+    touchmove: function(evt) {
+  		var self = this.scrollClass;
+      if(self.block === true) return;
+  		
+  		if(self.sid != evt.streamId) return;
+		
+  		var xdiff = self.positionY - evt.pageY;
+  		var ydiff = self.positionX - evt.pageX;
+  		var diff = self.type == 'vertical' ? ydiff : xdiff;
+  		if(diff == 0) {
+  			return;
+  		} else if(self.type == 'vertical' && xdiff > ydiff) {
+        return;
+      } else if(self.type == 'horizontal' && xdiff < ydiff) {
+        return;
+      }
+		
+  		var margin = parseInt(self.type == 'vertical' ? node.style.marginTop : node.style.marginLeft) || 0;
+  		var contentSize = self.type == 'vertical' ? self.wrapper.clientHeight : self.wrapper.clientWidth;
+  		var scrollSize = self.type == 'vertical' ? self.node.clientHeight : self.node.clientWidth;
+  		var maxSize = contentSize - scrollSize;
+  		var position = margin - diff;
+  		position = position < maxSize ? maxSize : position;
+  		position = position > 0 ? 0 : position;
+  		if(self.type == 'vertical') {
+  			self.node.style.marginTop = position + 'px';
+  		} else {
+  			self.node.style.marginLeft = position + 'px';
+  		}
+  		self.positionY = evt.pageY;
+  		self.positionX = evt.pageX;
+		
+  		if($a.isFunc(self.move)) {
+  			self.move(evt, position);
+  		}
+      
+    },
+    
+    touchend: function(evt) {
+  		var self = this.scrollClass;
+      if(self.block === true) return;
+  		delete self.positionY;
+  		delete self.positionX;
+  		if($a.isFunc(self.end)) {
+  			scroll.end.call(this, evt);
+  		}
+    }
+  };
+	$mt.scroll = function(attrs) {
+    console.log('$mt.scroll is deprecated, use new $mt.Scroll()');
+    return new $mt.Scroll(attrs);
 	};
 	
 	$mt.unscroll = function(node, type) {
-		$mt.unbind(node, 'touchstart', $mt.scrollStart, true, type);
-		$mt.unbind(node, 'touchmove', $mt.scrollMove, true, type);
-		$mt.unbind(node, 'touchend', $mt.scrollEnd, true, type);
-		$mt.unbind(node, 'touchcancel', $mt.scrollEnd, true, type);
-	};
-	
-	$mt.scrollStart = function(event, type) {
-		var el = event.currentTarget;
-		var scroll = el._scroll[type];
-		scroll.positionY = event.pageY;
-		scroll.positionX = event.pageX;
-		scroll.sid = event.streamId;
-		if($a.isFunc(scroll.onScrollStart)) {
-			scroll.onScrollStart(event);
-		}
-	};
-	
-	$mt.scrollMove = function(event, type) {
-		var el = event.currentTarget;
-		var scroll = el._scroll[type];
-		var node = el.children[0];
-		if(scroll.sid != event.streamId) return;
-		
-		var diff = 0;
-		if(type == 'vertical') {
-			diff = scroll.positionY - event.pageY;
-		} else {
-			diff = scroll.positionX - event.pageX;
-		}
-		if(diff == 0) {
-			return;
-		}
-		
-		var margin = type == 'vertical' ? node.style.marginTop : node.style.marginLeft;
-		var contentSize = type == 'vertical' ? el.clientHeight : el.clientWidth;
-		var scrollSize = type == 'vertical' ? node.clientHeight : node.clientWidth;
-		margin = margin == "" ? 0 : parseInt(margin);
-		var maxSize = contentSize - scrollSize;
-		var position = margin - diff;
-		position = position < maxSize ? maxSize : position;
-		position = position > 0 ? 0 : position;
-		if(type == 'vertical') {
-			node.style.marginTop = position + 'px';
-		} else {
-			node.style.marginLeft = position + 'px';
-		}
-		scroll.positionY = event.pageY;
-		scroll.positionX = event.pageX;
-		
-		if($a.isFunc(scroll.onScrollMove)) {
-			scroll.onScrollMove(event, position);
-		}
-	};
-	
-	$mt.scrollEnd = function(event, type) {
-		var el = event.currentTarget;
-		var scroll = el._scroll[type];
-		delete scroll.positionY;
-		delete scroll.positionX;
-		if($a.isFunc(scroll.onScrollEnd)) {
-			scroll.onScrollEnd(event);
-		}
+		throw('unscroll is not supported anymore. use unbind on scroll return');
 	};
 	
 	/**
