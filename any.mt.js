@@ -75,10 +75,13 @@
   $mt.Scroll = function(attrs) {
     this.node = attrs.node;
     this.wrapper = attrs.wrapper || this.node.children[0];
-    this.type = attrs.type;
+    this.type = attrs.type || 'vertical';
     this.start = attrs.onScrollStart;
     this.move = attrs.onScrollMove;
     this.end = attrs.onScrollMove;
+    
+    if( ! this.node) throw 'no node defined';
+    if( ! this.wrapper) throw 'no wrapper defined';
     
     this.node.scrollClass = this;
 
@@ -124,7 +127,7 @@
         return;
       }
 		
-  		var margin = parseInt(self.type == 'vertical' ? node.style.marginTop : node.style.marginLeft) || 0;
+  		var margin = parseInt(self.type == 'vertical' ? self.node.style.marginTop : self.node.style.marginLeft) || 0;
   		var contentSize = self.type == 'vertical' ? self.wrapper.clientHeight : self.wrapper.clientWidth;
   		var scrollSize = self.type == 'vertical' ? self.node.clientHeight : self.node.clientWidth;
   		var maxSize = contentSize - scrollSize;
@@ -151,12 +154,12 @@
   		delete self.positionY;
   		delete self.positionX;
   		if($a.isFunc(self.end)) {
-  			scroll.end.call(this, evt);
+  			self.end.call(this, evt);
   		}
     }
   };
 	$mt.scroll = function(attrs) {
-    console.log('$mt.scroll is deprecated, use new $mt.Scroll()');
+    console.warn('$mt.scroll is deprecated, use new $mt.Scroll()');
     return new $mt.Scroll(attrs);
 	};
 	
@@ -177,70 +180,84 @@
 	 *   callback - called after swipe when conditions match
 	 * }
 	 */
-	$mt.swipe = function(attrs) {
-		if( ! attrs.node instanceof HTMLElement) throw 'no node defined';
-		if(attrs.startAfter == undefined) attrs.startAfter = 20;
-		if(attrs.minSpeed == undefined) attrs.minSpeed = 1;
-		if(attrs.type == undefined) attrs.type = 'horizontal';
-		
-		var el = attrs.node;
-		delete attrs.node;
-		if(el._swipe == undefined) el._swipe = {};
-		if(el._swipe[attrs.type] == undefined) el._swipe[attrs.type] = attrs;
+  $mt.Swipe = function(attrs) {
+		this.node = attrs.node;
+    this.type = attrs.type || 'horizontal';
+    this.minSpeed = attrs.minSpeed || 1;
+    this.startAfter = attrs.startAfter || 20;
+    this.start = attrs.onSwipeStart;
+    this.move = attrs.onSwipeMove;
+    this.end = attrs.onSwipeEnd;
+    this.callback = attrs.callback;
+    
+    if( ! this.node instanceof HTMLElement) throw 'no node defined';
+    
+    this.node.swipeClass = this;
 
-		$mt.bind(el, 'touchstart', $mt.swipeStart, true, attrs.type);
-		$mt.bind(el, 'touchmove', $mt.swipeMove, true, attrs.type);
-		$mt.bind(el, 'touchend', $mt.swipeEnd, true, attrs.type);
+		$mt.bind(this.node, 'touchstart', this.touchstart, true);
+		$mt.bind(this.node, 'touchmove', this.touchmove, true);
+		$mt.bind(this.node, 'touchend', this.touchend, true);
+		$mt.bind(this.node, 'touchcancel', this.touchend, true);
+    
+  }
+  $mt.Swipe.prototype = {
+  	touchstart: function(evt) {
+  		var self = this.swipeClass;
+  		self.tsStart = Date.now();
+  		self.startPoint = evt;
+  		if($a.isFunc(self.start)) {
+  			self.start(evt);
+  		}
+  	},
+	
+  	touchmove: function(evt) {
+  		var self = this.swipeClass;
+  		if($a.isFunc(self.move)) {
+  			self.move(evt);
+  		}
+  	},
+	
+  	touchend: function(evt) {
+  		var self = this.swipeClass;
+		
+  		if($a.isFunc(self.end)) {
+  			self.end(evt);
+  		}
+		
+  		var xdiff = self.startPoint.pageX - evt.pageX;
+  		var ydiff = self.startPoint.pageY - evt.pageY;
+  		if((Math.abs(ydiff) > Math.abs(xdiff) && self.type == 'horizontal') || (Math.abs(ydiff) < Math.abs(xdiff) && self.type == 'vertical')) {
+  		  self.startPoint = null;
+  			return;
+  		}
+  		if(Math.abs(xdiff) > self.startAfter || Math.abs(ydiff) > self.startAfter) {
+  			if(self.type == 'horizontal') {
+  			  self.callback(xdiff > 0 ? 1 : -1);
+  			} else if(type == 'vertical') {
+  			  self.callback(ydiff > 0 ? 1 : -1);
+  			}
+  		}
+  		self.startPoint = null;
+  	},
+    
+    unbind: function() {
+  		$mt.unbind(this.node, 'touchstart', this.touchstart, true);
+  		$mt.unbind(this.node, 'touchmove', this.touchmove, true);
+  		$mt.unbind(this.node, 'touchend', this.touchend, true);
+  		$mt.unbind(this.node, 'touchcancel', this.touchend, true);
+      
+    }
+  };
+	$mt.swipe = function(attrs) {
+    console.warn('$mt.swipe is deprecated, use new $mt.Swipe()');
+		return new $mt.Swipe(attrs);
 	};
 	
 	$mt.unswipe = function(node, type) {
-		$mt.unbind(node, 'touchstart', $mt.swipeStart, true, type);
-		$mt.unbind(node, 'touchmove', $mt.swipeMove, true, type);
-		$mt.unbind(node, 'touchend', $mt.swipeEnd, true, type);
+    throw('unscroll is not supported anymore. use unbind on swipe return');
 	}
 	
-	$mt.swipeStart = function(event, type) {
-		var el = event.currentTarget;
-		var swipe = el._swipe[type];
-		swipe.tsStart = Date.now();
-		swipe.startPoint = event;
-		if($a.isFunc(swipe.onSwipeStart)) {
-			swipe.onSwipeStart(event);
-		}
-	};
 	
-	$mt.swipeMove = function(event, type) {
-		var el = event.currentTarget;
-		var swipe = el._swipe[type];
-		if($a.isFunc(swipe.onSwipeMove)) {
-			swipe.onSwipeMove(event);
-		}
-	};
-	
-	$mt.swipeEnd = function(event, type) {
-		var el = event.currentTarget;
-	  
-		var swipe = el._swipe[type];
-		
-		if($a.isFunc(swipe.onSwipeEnd)) {
-			swipe.onSwipeEnd(event);
-		}
-		
-		var xdiff = swipe.startPoint.pageX - event.pageX;
-		var ydiff = swipe.startPoint.pageY - event.pageY;
-		if((Math.abs(ydiff) > Math.abs(xdiff) && type == 'horizontal') || (Math.abs(ydiff) < Math.abs(xdiff) && type == 'vertical')) {
-		  swipe.startPoint = null;
-			return;
-		}
-		if(Math.abs(xdiff) > swipe.startAfter || Math.abs(ydiff) > swipe.startAfter) {
-			if(type == 'horizontal') {
-			  swipe.callback(xdiff > 0 ? 1 : -1);
-			} else if(type == 'vertical') {
-			  swipe.callback(ydiff > 0 ? 1 : -1);
-			}
-		}
-		swipe.startPoint = null;
-	};
 	
 	$mt.draw = {};
 	$mt.draw.items = [];
@@ -266,88 +283,126 @@
 	
 	$mt.elementCounter = 0;
 	
-	// handlers: touchStartCallbackStart, touchStartCallbackEnd, touchMoveCallbackStart, touchMoveCallbackEnd, touchEndCallbackStart, touchEndCallbackEnd
-	// $mt.moveGesture(element, {gestureMoveCallbackEnd: function(event) {alert(event.rotation;)}});
+	/**
+   * move a node with css transition
+   * {
+   *   node - element to bind event
+   *   mnode - optional element for move else it will use node
+   *   onTouchStartPre - callback for touchstart start
+   *   onTouchStartPost - callback for touchstart end
+   *   onTouchMovePre - callback for touchmove start
+   *   onTouchMovePost - callback for touchmove end
+   *   onTouchEndPre - callback for touchend start
+   *   onTouchEndPost - callback for touchend end
+   * }
+   */
+  $mt.Move = function(attrs) {
+    this.node = attrs.node;
+    this.mnode = attrs.mnode || this.node;
+    this.startPre = attrs.onTouchStartPre;
+    this.startPost = attrs.onTouchStartPost;
+    this.movePre = attrs.onTouchMovePre;
+    this.movePost = attrs.onTouchMovePost;
+    this.endPre = attrs.onTouchEndPre;
+    this.endPost = attrs.onTouchEndPost;
+    
+    this.node.moveClass = this;
+    
+		$mt.bind(this.node, 'touchstart', this.touchstart, true);
+		$mt.bind(this.node, 'touchmove', this.touchmove, true);
+		$mt.bind(this.node, 'touchend', this.touchend, true);
+		$mt.bind(this.node, 'touchcancel', this.touchend, true);
+  }
+  $mt.Move.prototype = {
+  	touchstart: function(evt) {
+  		var self = this.moveClass;
+  		if($a.isFunc(self.startPre)) {
+  			self.startPre(evt);
+  		}
+		
+  		evt.preventDefault();
+      
+  		self.mnode.style.zIndex = $mt.elementCounter += 1;
+  		self.touchX = evt.pageX;
+  	  self.touchY = evt.pageY;
+  		self.touchSID = evt.streamId;
+		
+  		if($a.isFunc(self.startPost)) {
+  			self.startPost(evt);
+  		}
+  	},
+	
+  	touchmove: function(evt) {
+  		var self = this.moveClass;
+      
+  		if(self.gesture || self.touchSID != evt.streamId || (isNaN(self.touchX) || isNaN(self.touchY)) || self.touchX == undefined || self.touchY == undefined) {
+  			return;
+  		}
+      
+  		if($a.isFunc(self.movePre)) {
+  			self.movePre(evt);
+  		}
+
+  		var translate = $a.transform(self.mnode, 'translate');
+  		var translateX = translate.x + (evt.pageX - self.touchX);
+  		var translateY = translate.y + (evt.pageY - self.touchY);
+  		$a.requestAnimationFrame(function() {
+  			$a.transform(self.mnode, 'translate', translateX, translateY);
+  		});
+		
+  		self.touchX = evt.pageX;
+  		self.touchY = evt.pageY;
+		
+  		if($a.isFunc(self.movePost)) {
+  			self.movePost(evt);
+  		}
+  	},
+	
+  	touchend: function(evt) {
+  		var self = this.moveClass;
+  		if(evt.streamId != self.touchSID) return;
+		
+  		if($a.isFunc(self.endPre)) {
+  			self.endPre(evt);
+  		}
+		
+  		delete self.touchX;
+  		delete self.touchY;
+  		delete self.touchSID;
+		
+  		if($a.isFunc(self.endPost)) {
+  			self.endPost(evt);
+  		}
+  	},
+    
+    unbind: function() {
+  		$mt.unbind(this.node, 'touchstart', this.touchstart, true);
+  		$mt.unbind(this.node, 'touchmove', this.touchmove, true);
+  		$mt.unbind(this.node, 'touchend', this.touchend, true);
+  		$mt.unbind(this.node, 'touchcancel', this.touchend, true);
+  		
+    }
+
+  };
+	// handlers: onTouchStartPre, onTouchStartPost, onTouchMovePre, onTouchMovePost, onTouchEndPre, onTouchEndPost
+	// $mt.registerMove(element, {onTouchMovePost: function(event) {alert(event.rotation;)}});
 	$mt.registerMove = function(element, handlers, move_object) {
-		if(element._move_handlers != undefined) return;
-		element._move_handlers = handlers;
-		element._move_object = move_object || element;
-		$mt.bind(element, 'touchstart', $mt.touchStart);
-		$mt.bind(element, 'touchmove', $mt.touchMove);
-		$mt.bind(element, 'touchend', $mt.touchEnd);
-		$mt.bind(element, 'touchcancel', $mt.touchEnd);
+    console.warn('$mt.registerMove is deprecated, use new $mt.Move()');
+		return new $mt.Move($a.extend(handlers, {node: element, object: move_object}));
 	};
 	
 	$mt.unregisterMove = function(element) {
-		$mt.unbind(element, 'touchstart', $mt.touchStart);
-		$mt.unbind(element, 'touchmove', $mt.touchMove);
-		$mt.unbind(element, 'touchend', $mt.touchEnd);
-		$mt.unbind(element, 'touchcancel', $mt.touchEnd);
-		delete element._move_handlers;
-		delete element._move_object;
+		throw('unregisterMove is not supported anymore. use unbind on registerMove return');
 	};
 	
-	$mt.touchStart = function(event) {
-		var el = event.currentTarget;
-		if($a.isObj(el._move_handlers) && $a.isFunc(el._move_handlers.touchStartCallbackStart)) {
-			el._move_handlers.touchStartCallbackStart(event);
-		}
-		
-		event.preventDefault();
-		el.style.zIndex = $mt.elementCounter += 1;
-		el.touchX = event.pageX;
-	  el.touchY = event.pageY;
-		el.touchSID = event.streamId;
-		
-		if($a.isObj(el._move_handlers) && $a.isFunc(el._move_handlers.touchStartCallbackEnd)) {
-			el._move_handlers.touchStartCallbackEnd(event);
-		}
-	};
 	
-	$mt.touchMove = function(event) {
-		var el = event.currentTarget;
-		if($a.isObj(el._move_handlers) && $a.isFunc(el._move_handlers.touchMoveCallbackStart)) {
-			el._move_handlers.touchMoveCallbackStart(event);
-		}
-		
-		if(el.gesture || el.touchSID != event.streamId || (isNaN(el.touchX) || isNaN(el.touchY)) || el.touchX == undefined || el.touchY == undefined) {
-			return;
-		}
-
-		var translate = $a.transform(el._move_object, 'translate');
-		var translateX = translate.x + (event.pageX - el.touchX);
-		var translateY = translate.y + (event.pageY - el.touchY);
-		$a.requestAnimationFrame(function() {
-			$a.transform(el._move_object, 'translate', translateX, translateY);
-		});
-		
-		el.touchX = event.pageX;
-		el.touchY = event.pageY;
-		
-		if($a.isObj(el._move_handlers) && $a.isFunc(el._move_handlers.touchMoveCallbackEnd)) {
-			el._move_handlers.touchMoveCallbackEnd(event);
-		}
-	};
-	
-	$mt.touchEnd = function(event) {
-		var el = event.currentTarget;
-		if(event.streamId != el.touchSID) return;
-		
-		if($a.isObj(el._move_handlers) && $a.isFunc(el._move_handlers.touchEndCallbackStart)) {
-			el._move_handlers.touchEndCallbackStart(event);
-		}
-		
-		delete el.touchX;
-		delete el.touchY;
-		delete el.touchSID;
-		
-		if($a.isObj(el._move_handlers) && $a.isFunc(el._move_handlers.touchEndCallbackEnd)) {
-			el._move_handlers.touchEndCallbackEnd(event);
-		}
-	};
 	
 	// handlers: gestureStartCallbackStart, gestureStartCallbackEnd, gestureMoveCallbackStart, gestureMoveCallbackEnd, gestureEndCallbackStart, gestureEndCallbackEnd
 	// $mt.registerGesture(element, {gestureMoveCallbackEnd: function(event) {alert(event.rotation;)}});
+  $mt.Gesture = function(attrs) {
+    this.node = attrs.node;
+    this.mnode = attrs.mnode || this.node;
+  }
 	$mt.registerGesture = function(element, handlers) {
 		if(element._move_handlers != undefined) return;
 		element._move_handlers = handlers;
