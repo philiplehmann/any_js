@@ -115,29 +115,32 @@
       if(self.block === true) return;
   		
   		if(self.sid != evt.streamId) return;
-		
-  		var xdiff = self.positionY - evt.pageY;
-  		var ydiff = self.positionX - evt.pageX;
+      
+  		var ydiff = self.positionY - evt.pageY;
+  		var xdiff = self.positionX - evt.pageX;
   		var diff = self.type == 'vertical' ? ydiff : xdiff;
   		if(diff == 0) {
   			return;
-  		} else if(self.type == 'vertical' && xdiff > ydiff) {
+  		} else if(self.type == 'vertical' && Math.abs(xdiff) > Math.abs(ydiff)) {
         return;
-      } else if(self.type == 'horizontal' && xdiff < ydiff) {
+      } else if(self.type == 'horizontal' && Math.abs(xdiff) < Math.abs(ydiff)) {
         return;
       }
 		
-  		var margin = parseInt(self.type == 'vertical' ? self.node.style.marginTop : self.node.style.marginLeft) || 0;
-  		var contentSize = self.type == 'vertical' ? self.wrapper.clientHeight : self.wrapper.clientWidth;
-  		var scrollSize = self.type == 'vertical' ? self.node.clientHeight : self.node.clientWidth;
+  		var margin = parseInt(self.type == 'vertical' ? self.wrapper.style.marginTop : self.wrapper.style.marginLeft) || 0;
+
+  		var contentSize = self.type == 'vertical' ? self.node.clientHeight : self.node.clientWidth;
+  		var scrollSize = self.type == 'vertical' ? self.wrapper.clientHeight : self.wrapper.clientWidth;
+
   		var maxSize = contentSize - scrollSize;
   		var position = margin - diff;
+      console.log(position);
   		position = position < maxSize ? maxSize : position;
   		position = position > 0 ? 0 : position;
   		if(self.type == 'vertical') {
-  			self.node.style.marginTop = position + 'px';
+  			self.wrapper.style.marginTop = position + 'px';
   		} else {
-  			self.node.style.marginLeft = position + 'px';
+  			self.wrapper.style.marginLeft = position + 'px';
   		}
   		self.positionY = evt.pageY;
   		self.positionX = evt.pageX;
@@ -145,7 +148,6 @@
   		if($a.isFunc(self.move)) {
   			self.move(evt, position);
   		}
-      
     },
     
     touchend: function(evt) {
@@ -490,6 +492,41 @@
 		element.onmouseout = func;
 		element.onmouseenter = func;
 		element.onmouseleave = func;
+    /*
+    onmousewheel: null
+    onpaste: null
+    onreset: null
+    onscroll: null
+    onsearch: null
+    onselect: null
+    onselectstart: null
+    onabort: null
+    onbeforecopy: null
+    onbeforecut: null
+    onbeforepaste: null
+    onblur: null
+    onchange: null
+    onclick: function (evt){evt.preventDefault();return false;}
+    oncontextmenu: null
+    oncopy: null
+    oncut: null
+    ondblclick: null
+    ondrag: null
+    ondragend: null
+    ondragenter: null
+    ondragleave: null
+    ondragover: null
+    ondragstart: null
+    ondrop: null
+    onerror: null
+    onfocus: null
+    oninput: null
+    oninvalid: null
+    onkeydown: null
+    onkeypress: null
+    onkeyup: null
+    onload: null
+    */
 	};
 	
 	var EmulateTouch = {
