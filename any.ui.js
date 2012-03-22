@@ -681,16 +681,19 @@
 	  };
 	  
 	  var handleArrows = function(evt) {
-	    if(this._ac && (evt.keyIdentifier.toLowerCase() == 'down' || evt.keyIdentifier.toLowerCase() == 'up')) {
+      // key up 38
+      // key down 40
+      // key enter 13
+	    if(this._ac && (evt.keyCode == 38 || evt.keyCode == 40)) {
 	      evt.preventDefault();
 	      var el = null;
 	      var active = $a.first(this._ac, 'li[data-value].active');
 	      if(!active) {
 	        el = $a.first(this._ac, 'li[data-value]:first-child');
 	      }
-	      if(active && evt.keyIdentifier.toLowerCase() == 'down') {
+	      if(active && evt.keyCode == 40) {
 	        el = active.nextElementSibling;
-	      } else if(active && evt.keyIdentifier.toLowerCase() == 'up') {
+	      } else if(active && evt.keyCode == 38) {
 	        el = active.previousElementSibling;
 	      }
 	      if(el && $a.data(el, 'value')) {
@@ -698,7 +701,7 @@
 	        $a.addClass(el, 'active');
 	      }
 	      return false;
-	    } else if(this._ac && evt.keyIdentifier.toLowerCase() == 'enter') {
+	    } else if(this._ac && evt.keyCode == 13) {
 	      evt.preventDefault();
 	      var active = $a.first(this._ac, 'li[data-value].active');
 	      if(active) {
