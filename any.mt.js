@@ -134,7 +134,7 @@
 
   		var maxSize = contentSize - scrollSize;
   		var position = margin - diff;
-      console.log(position);
+      //console.log(position);
   		position = position < maxSize ? maxSize : position;
   		position = position > 0 ? 0 : position;
   		if(self.type == 'vertical') {
