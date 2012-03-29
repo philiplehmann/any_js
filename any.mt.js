@@ -214,6 +214,7 @@
 	
   	touchmove: function(evt) {
   		var self = this.swipeClass;
+      
   		if($a.isFunc(self.move)) {
   			self.move(evt);
   		}
@@ -221,10 +222,6 @@
 	
   	touchend: function(evt) {
   		var self = this.swipeClass;
-		
-  		if($a.isFunc(self.end)) {
-  			self.end(evt);
-  		}
 		
   		var xdiff = self.startPoint.pageX - evt.pageX;
   		var ydiff = self.startPoint.pageY - evt.pageY;
@@ -234,12 +231,16 @@
   		}
   		if(Math.abs(xdiff) > self.startAfter || Math.abs(ydiff) > self.startAfter) {
   			if(self.type == 'horizontal') {
-  			  self.callback(xdiff > 0 ? 1 : -1);
+  			  self.callback(xdiff > 0 ? 1 : -1, evt);
   			} else if(type == 'vertical') {
-  			  self.callback(ydiff > 0 ? 1 : -1);
+  			  self.callback(ydiff > 0 ? 1 : -1, evt);
   			}
   		}
   		self.startPoint = null;
+		
+  		if($a.isFunc(self.end)) {
+  			self.end(evt);
+  		}
   	},
     
     unbind: function() {
