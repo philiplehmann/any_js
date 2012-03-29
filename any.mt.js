@@ -78,7 +78,7 @@
     this.type = attrs.type || 'vertical';
     this.start = attrs.onScrollStart;
     this.move = attrs.onScrollMove;
-    this.end = attrs.onScrollMove;
+    this.end = attrs.onScrollEnd;
     
     if( ! this.node) throw 'no node defined';
     if( ! this.wrapper) throw 'no wrapper defined';

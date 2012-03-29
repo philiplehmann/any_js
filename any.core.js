@@ -44,7 +44,7 @@
 	$a.MOBILE_SAFARI = 'mobile_safari';
 	$a._BROWSERS = {};
 	$a._BROWSERS[$a.CHROME] = /chrome.*safari/gi;
-	$a._BROWSERS[$a.FIREFOX] = /Firefox\/4/gi;
+	$a._BROWSERS[$a.FIREFOX] = /Firefox\/([0-9.]+)/gi;
 	$a._BROWSERS[$a.FENNEC] = /fennec/gi;
 	$a._BROWSERS[$a.SAFARI] = /version.*safari/gi;
 	$a._BROWSERS[$a.MOBILE_SAFARI] = /version.*mobile.*safari/gi;

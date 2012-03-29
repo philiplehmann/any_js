@@ -133,7 +133,7 @@
 		var mt = MOZTouch.getObjectByNamespace(event.currentTarget, 'click');
 		if(mt.count < 50 && Math.abs(mt.event.pageX - event.pageX) < 20 && Math.abs(mt.event.pageY - event.pageY) < 20) {
 			MOZTouch.touch_cleanup(mt);
-			return data.mozCallback(event, data);
+			return data.mozCallback.call(event.currentTarget, event, data);
 		}
 		MOZTouch.touch_cleanup(mt);
 	};
@@ -154,7 +154,7 @@
 		//console.debug("element %o diff %o diffx %o diffy %o, now, %o, last %o", event.currentTarget, diff, diffx, diffy, now, last);
 		if(diff < 500 && diff > 0 && diffx < 50 && diffy < 50) {
 			delete event.currentTarget.last_doubletouch;
-			return data.mozDoubleCallback(event, data);
+			return data.mozDoubleCallback.call(event.currentTarget, event, data);
 		} else {
 			event.currentTarget.last_doubletouch = now;
 			event.currentTarget.last_doubleX = event.pageX;
@@ -171,22 +171,22 @@
 	// handle normal touch events
 	MOZTouch.touchDown = function(event, data) {
 		MOZTouch._sids[event.streamId] = event.currentTarget;
-		return data.mozCallback(event, data);
+		return data.mozCallback.call(event.currentTarget, event, data);
 	};
 	
 	MOZTouch.touchMove = function(event, data) {
 		MOZTouch._sids[event.streamId] = event.currentTarget;
-		return data.mozCallback(event, data);
+		return data.mozCallback.call(event.currentTarget, event, data);
 	};
 	
 	MOZTouch.touchUp = function(event, data) {
 		delete MOZTouch._sids[event.streamId];
-		return data.mozCallback(event, data);
+		return data.mozCallback.call(event.currentTarget, event, data);
 	};
 	
 	MOZTouch.touchCancel = function(event, data) {
 		delete MOZTouch._sids[event.streamId];
-		return data.mozCallback(event, data);
+		return data.mozCallback.call(event.currentTarget, event, data);
 	};
 	
 	// called from the body
@@ -232,7 +232,7 @@
 			if(calc.scale != mt.scale || calc.rotation != mt.rotation) {
 				mt.scale = event.scale = calc.scale;
 	  		mt.rotation = event.rotation = calc.rotation;
-				return data.mozCallbackExtra(event, data);
+				return data.mozCallbackExtra.call(event.currentTarget, event, data);
 			}
   	}
 	};
@@ -257,7 +257,7 @@
 			if(calc.scale != mt.scale || calc.rotation != mt.rotation) {
 				mt.scale = event.scale = calc.scale;
 	  		mt.rotation = event.rotation = calc.rotation;
-				return data.mozCallbackExtra(event, data);
+				return data.mozCallbackExtra.call(event.currentTarget, event, data);
 			}
   	}
 	};
@@ -284,7 +284,7 @@
 				mt.scale = event.scale = calc.scale;
 	  		mt.rotation = event.rotation = calc.rotation;
 				MOZTouch.sidCleanup(event.streamId);
-				return data.mozCallbackExtra(event, data);
+				return data.mozCallbackExtra.call(event.currentTarget, event, data);
 			}
   	}
 		MOZTouch.sidCleanup(event.streamId);
