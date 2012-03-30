@@ -222,7 +222,9 @@
 	
   	touchend: function(evt) {
   		var self = this.swipeClass;
-		
+		  
+      if( ! self.startPoint) return;
+      
   		var xdiff = self.startPoint.pageX - evt.pageX;
   		var ydiff = self.startPoint.pageY - evt.pageY;
   		if((Math.abs(ydiff) > Math.abs(xdiff) && self.type == 'horizontal') || (Math.abs(ydiff) < Math.abs(xdiff) && self.type == 'vertical')) {
@@ -484,7 +486,14 @@
 	};
 	
 	$mt.escapeElement = function(element) {
-	  var func = function(evt){evt.preventDefault();return false;};
+    var focusmaker = $a.id('focusmaker');
+	  var func = function(evt){
+      evt.preventDefault();
+      if(focusmaker) {
+        focusmaker.focus();
+      }
+      return false;
+    };
 		element.onclick = func;
 		element.onmousedown = func;
 		element.onmousemove = func;
