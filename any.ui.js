@@ -369,10 +369,19 @@
 	
 	/***************************************************************************************************
 	 * keyboard
+   
+   * params {
+   *   node - keyboard HTMLElement ul.keyboard
+   *   input - input field
+   *   show - function to call on show
+   *   hide - function to call on hide
+   * }
 	 **************************************************************************************************/
-	$ui.Keyboard = function(element, input) {
-		this.element = element;
-		this.input = input;
+   $ui.Keyboard = function(params) {
+		this.element = params.node;
+		this.input = params.input;
+    this.onShow = $a.isFunc(params.show) ? params.show : null;
+    this.onHide = $a.isFunc(params.hide) ? params.hide : null;
 		this.capslockEnabled = false;
 		
 		if( ! this.element.keyboard) {
@@ -396,25 +405,33 @@
 	$ui.Keyboard.types = ['symbol', 'letter', 'back', 'tab', 'capslock', 'enter', 'space', 'hidekeyboard'];
 
 	$ui.Keyboard.prototype.show = function() {
-		$a.show(this.element);
+		var self = this;
+    $a.show(this.element);
 		$a.show(this.element.parentNode);
-		var element = this.element;
-		window.setTimeout(function() {
-			$a.animate(element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 1});
-			$ui.fireEvent(element, 'showkeyboard');
-		}, 100);
+		if(this.onShow) {
+		  this.onShow(this.element);
+		} else {
+      setTimeout(function() {
+        $a.animate(self.element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 1});
+      }, 100);
+		}
+    $ui.fireEvent(self.element, 'showkeyboard');
 		// select text with double touch
 		$mt.bind(this.input, 'doubletouch', this.selectInput, true);
 	};
 	
 	$ui.Keyboard.prototype.hide = function() {
 		var element = this.element;
-		$a.animate(element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 0}, true, function(event){
-			if(event.currentTarget.style.opacity == 0) {
-				$a.hide(event.currentTarget);
-				$a.hide(event.currentTarget.parentNode);
-			}
-		});
+    if(this.onHide) {
+      this.onHide(this.element)
+    } else {
+  		$a.animate(element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 0}, true, function(event){
+  			if(this.style.opacity == 0) {
+  				$a.hide(this);
+  				$a.hide(this.parentNode);
+  			}
+  		});
+    }
 		this.input.blur();
 		$ui.fireEvent(this.element, 'hidekeyboard');
 		// select text with double touch
@@ -516,7 +533,8 @@
 
 	$ui.Keyboard.prototype.enter = function(li) {
 		if((this.input.nodeName == 'INPUT' || this.input.nodeName == 'BUTTON') && this.input.form) {
-			this.input.form.submit();
+			//this.input.form.submit();
+      $ui.fireEvent(this.input.form, 'submit');
 			this.hide();
 		} else if(this.input.nodeName == 'TEXTAREA') {
 			this.insert($ui.Keyboard.chr(10));
