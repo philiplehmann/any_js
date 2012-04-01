@@ -431,26 +431,29 @@
 	};
 
 	$ui.Keyboard.prototype.touchDown = function(event) {
-		$a.addClass(event.currentTarget, 'pressed');
-		if($a.hasClass(event.currentTarget, 'shift')) {
-			event.currentTarget.parentNode.keyboard.shift(event.currentTarget);
+		var self = this.parentNode.keyboard;
+    $a.addClass(this, 'pressed');
+		if($a.hasClass(this, 'shift')) {
+			self.shift(this);
 		}
-		
-		var el = event.currentTarget;
+    
 		for(var i=0; i < $ui.Keyboard.types.length; i++) {
-			if($a.hasClass(el, $ui.Keyboard.types[i])) {
-				el.parentNode.keyboard[$ui.Keyboard.types[i]](el);
+			if($a.hasClass(this, $ui.Keyboard.types[i])) {
+				self[$ui.Keyboard.types[i]](this);
 			}
 		}
+    
+    $ui.fireEvent(self.input, 'keydown');
 	};
 
 	$ui.Keyboard.prototype.touchUp = function(event) {
-		$a.removeClass(event.currentTarget, 'pressed');
-		if($a.hasClass(event.currentTarget, 'shift')) {
-			event.currentTarget.parentNode.keyboard.shift(event.currentTarget);
+		$a.removeClass(this, 'pressed');
+		if($a.hasClass(this, 'shift')) {
+			this.parentNode.keyboard.shift(event.currentTarget);
 		}
 		var otherPressed = $a.all(event.currentTarget.parentNode, 'li.pressed');
 		$a.removeClass(otherPressed, 'pressed');
+    $ui.fireEvent(this.parentNode.keyboard.input, 'keyup');
 	};
 	
 	$ui.Keyboard.prototype.selectInput = function(event) {
@@ -465,6 +468,7 @@
 		//this.input.selectionStart;
 		//this.input.selectionEnd;
 		this.input.value += sign;
+    $ui.fireEvent(this.input, 'change');
 	};
 
 	$ui.Keyboard.prototype.symbol = function(li) {
@@ -482,6 +486,7 @@
 			this.input.value = this.input.value.substr(0, this.input.selectionStart) + this.input.value.substr(this.input.selectionEnd, this.input.value.length);
 		}
 		this.input.selectionEnd = this.input.selectionStart;
+    $ui.fireEvent(this.input, 'change');
 	};
 
 	$ui.Keyboard.prototype.tab = function(li) {
@@ -511,7 +516,7 @@
 
 	$ui.Keyboard.prototype.enter = function(li) {
 		if((this.input.nodeName == 'INPUT' || this.input.nodeName == 'BUTTON') && this.input.form) {
-			if($a.isFunc(this.input.form.onsubmit)) this.input.form.onsubmit(this.input.form);
+			this.input.form.submit();
 			this.hide();
 		} else if(this.input.nodeName == 'TEXTAREA') {
 			this.insert($ui.Keyboard.chr(10));
