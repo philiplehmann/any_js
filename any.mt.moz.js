@@ -100,16 +100,16 @@
 			break;
 			case 'gesturestart':
 				data = $a.extend(data, {mozCallbackExtra: callback});
-				MOZTouch.unbind(node, 'touchstart', MOZTouch.gestureStart, useCapture, data);
+				MOZTouch.unbind(node, 'MozTouchDown', MOZTouch.gestureStart, useCapture, data);
 			break;
 			case 'gesturechange':
 				data = $a.extend(data, {mozCallbackExtra: callback});
-				MOZTouch.unbind(node, 'touchmove', MOZTouch.gestureChange, useCapture, data);
+				MOZTouch.unbind(node, 'MozTouchMove', MOZTouch.gestureChange, useCapture, data);
 			break;
 			case 'gestureend':
 				data = $a.extend(data, {mozCallbackExtra: callback});
-				MOZTouch.unbind(node, 'touchend', MOZTouch.gestureEnd, useCapture, data);
-				MOZTouch.unbind(node, 'touchcancel', MOZTouch.gestureEnd, useCapture, data);
+				MOZTouch.unbind(node, 'MozTouchUp', MOZTouch.gestureEnd, useCapture, data);
+				MOZTouch.unbind(node, 'MozTouchCancel', MOZTouch.gestureEnd, useCapture, data);
 			break;
 			default:
 				$a.unbind(node, event, callback, useCapture, data);

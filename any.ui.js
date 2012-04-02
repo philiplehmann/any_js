@@ -474,16 +474,18 @@
 	};
 	
 	$ui.Keyboard.prototype.selectInput = function(event) {
-		event.currentTarget.selectionStart = 0;
-		event.currentTarget.selectionEnd = event.currentTarget.value.length;
+		this.selectionStart = 0;
+		this.selectionEnd = this.value.length;
 	};
 
 	$ui.Keyboard.prototype.insert = function(sign) {
 		if(this.input.type == 'number' && ($ui.Keyboard.ord(sign) > 47 && $ui.Keyboard.ord(sign) < 58) == false) {
 			return;
 		}
-		//this.input.selectionStart;
-		//this.input.selectionEnd;
+		if(this.input.selectionStart != this.input.selectionEnd) {
+			this.input.value = this.input.value.substr(0, this.input.selectionStart) + this.input.value.substr(this.input.selectionEnd, this.input.value.length);
+		}
+    
 		this.input.value += sign;
     $ui.fireEvent(this.input, 'change');
 	};

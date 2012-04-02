@@ -489,7 +489,7 @@
     var focusmaker = $a.id('focusmaker');
 	  var func = function(evt){
       evt.preventDefault();
-      if(focusmaker) {
+      if(focusmaker && evt.type === 'click') {
         focusmaker.focus();
       }
       return false;
