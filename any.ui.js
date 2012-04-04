@@ -536,7 +536,7 @@
 	$ui.Keyboard.prototype.enter = function(li) {
 		if((this.input.nodeName == 'INPUT' || this.input.nodeName == 'BUTTON') && this.input.form) {
 			//this.input.form.submit();
-      $ui.fireEvent(this.input.form, 'submit');
+      //$ui.fireEvent(this.input.form, 'submit');
 			this.hide();
 		} else if(this.input.nodeName == 'TEXTAREA') {
 			this.insert($ui.Keyboard.chr(10));
