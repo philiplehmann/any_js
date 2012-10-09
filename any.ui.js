@@ -9,13 +9,13 @@
 
 (function($a, $mt) {
   var root = this;
-  
+
   var $ui = {};
-  
+
   root.$ui = root._anyUiNoConflict = $ui;
-  
+
   $ui.VERSION = '0.0.1';
-  
+
   /******************************************************
    * number - number
    * attr - object {sign, prefix, suffix}
@@ -46,12 +46,12 @@
     arr.reverse();
     return prefix + arr.join(sign) + suffix;
   };
-  
+
   $ui.handleAll = function(element) {
     this.handleInputs(element);
     this.replaceSlider(element);
   };
-  
+
   $ui.handleInputs = function(element) {
     element = element || root;
     var inputs = $a.all(element, 'input');
@@ -60,7 +60,7 @@
     }
     $mt.bind(inputs, 'touch', $ui.handleInputEvent);
   };
-  
+
   $ui.handleInputEvent = function(event) {
     event.currentTarget.focus();
     if(event.currentTarget.form && $a.isFunc(event.currentTarget.form['on' + event.currentTarget.type])) {
@@ -69,7 +69,7 @@
       event.currentTarget.form[event.currentTarget.type](event.currentTarget.form);
     }
   };
-  
+
   $ui.replaceSlider = function(element) {
     element = element || root;
     var sliders = $a.all(element, 'input[type=slider]');
@@ -77,7 +77,7 @@
       var slider = new $ui.Slider(sliders[i]);
     }
   };
-  
+
   /**
    * slider
    */
@@ -101,7 +101,7 @@
     } else {
       throw 'got a wrong parameter';
     }
-    
+
     var el = this.createSlider();
     el.className = className;
     if(this.parent instanceof HTMLElement) {
@@ -135,7 +135,7 @@
   $ui.Slider.prototype.createSlider = function() {
     var enabled = parseInt(this.attr.enabled);
     enabled = isNaN(enabled) ? 1 : enabled;
-    
+
     var element = document.createElement('slider');
     element.slider = this;
     this.label = document.createElement('label');
@@ -161,7 +161,7 @@
     value_initial = value_initial > value_max ? value_max : value_initial;
     var value_percent = (100 - overflow_value) / range * (value_initial - value_min);
     $a.css(this.filler, {left: '0px', width: value_percent + '%'});
-    
+
     if(this.attr.subfiller_value && this.attr.subfiller_label) {
       this.subfiller = document.createElement('subfiller');
       this.subfiller.slider = this;
@@ -169,15 +169,15 @@
       this.subfiller.innerHTML = this.attr.subfiller_label || this.attr.subfiller_value || '';
       this.filler.appendChild(this.subfiller);
     }
-    
+
     this.labelmin = document.createElement('labelmin');
     this.labelmin.slider = this;
     this.labelmin.innerHTML = this.attr.label_min || this.attr.value_min || '';
     this.labelmax = document.createElement('labelmax');
     this.labelmax.slider = this;
     this.labelmax.innerHTML = this.attr.label_max || this.attr.value_max || '';
-    
-    
+
+
     this.bar.appendChild(this.empty);
     if(this.overflow) this.bar.appendChild(this.overflow);
     this.bar.appendChild(this.filler);
@@ -185,7 +185,7 @@
     element.appendChild(this.bar);
     element.appendChild(this.labelmin);
     element.appendChild(this.labelmax);
-    
+
     if(enabled === 1) {
       this.bubble = document.createElement('bubble');
       this.bubble.slider = this;
@@ -219,28 +219,28 @@
     }
     return element;
   };
-  
+
   $ui.Slider.prototype.getPositionByValue = function(value) {
     var overflow = this.overflow ? this.overflow.clientWidth : 0;
     var width = this.bar.clientWidth - overflow - 30;
-    
+
     var min = parseFloat(this.attr.value_min) || 0;
     var max = parseFloat(this.attr.value_max) || 0;
     var range = max - min;
-    
+
     value = value < min ? min : value;
     value = value > max ? max : value;
-    
+
     value -= min;
-    
+
     return width / range * value;
   };
-  
+
   $ui.Slider.prototype.setValue = function(value, min, max) {
     if(min) this.attr.value_min = min;
     if(max) this.attr.value_max = max;
     var left = this.getPositionByValue(value);
-    
+
     this.bubble.style.left = Math.round(left) + 'px';
     this.filler.style.width = Math.round(left+10) + 'px';
     var accuracy = parseFloat(this.attr.accuracy);
@@ -255,34 +255,34 @@
       this.input.value = value;
     }
   };
-  
+
   $ui.Slider.setValue = function(element, value, min, max) {
     return element.slider.setValue(value, min, max);
   };
-  
+
   $ui.Slider.prototype.startBubble = function(event) {
     event.currentTarget.bubblePosition = event.pageX;
     //event.currentTarget.slider.bubbleinput.focus();
   };
-  
+
   $ui.Slider.prototype.moveBubble = function(ev) {
     var slider = ev.currentTarget.slider;
     var diff = ev.pageX - ev.currentTarget.bubblePosition;
     if(diff == 0) return;
-    
+
     var overflow = slider.overflow ? slider.overflow.clientWidth : 0;
     var width = slider.bar.clientWidth - overflow - 30;
     var left = parseInt(slider.bubble.style.left) || 0;
-    
+
     var min = parseInt(slider.attr.value_min) || 0;
     var max = parseInt(slider.attr.value_max) || 0;
     var range = max - min;
-    
+
     left += diff;
     left = left > width ? width : left;
     left = left < 0 ? 0 : left;
     var value = min + range / width * left;
-    
+
 
     slider.bubble.style.left = Math.round(left) + 'px';
     slider.filler.style.width = Math.round(left+10) + 'px';
@@ -299,12 +299,12 @@
     }
     ev.currentTarget.bubblePosition = ev.pageX;
   };
-  
+
   $ui.Slider.prototype.endBubble = function(event) {
     delete event.currentTarget.bubblePosition;
     $ui.fireEvent(event.currentTarget.slider.input, 'change');
   };
-  
+
   $ui.Slider.prototype.touchBubble = function(event) {
     var slider = event.currentTarget.slider;
     slider.bubbleinput.type = 'hidden';
@@ -323,27 +323,27 @@
     slider.bubbleinput.type = 'text';
     slider.input.type = 'hidden';
     slider.input.value = value;
-    
+
     var left = slider.getPositionByValue(value);
     slider.bubble.style.left = Math.round(left) + 'px';
     slider.filler.style.width = Math.round(left+10) + 'px';
-    
+
     $ui.fireEvent(slider.input, 'change');
   };
-  
+
   $ui.Slider.prototype.touchBar = function(event) {
     var slider = event.currentTarget.slider;
     var left = event.layerX;
     slider.bubble.style.left = left + 'px';
     slider.filler.style.width = (left + 10) + 'px';
-    
+
     var overflow = slider.overflow ? slider.overflow.clientWidth : 0;
     var width = slider.bar.clientWidth - overflow - 30;
-    
+
     var min = parseFloat(slider.attr.value_min) || 0;
     var max = parseFloat(slider.attr.value_max) || 0;
     var range = max - min;
-    
+
     var value = Math.round(min + range / width * left);
     var accuracy = parseFloat(slider.attr.accuracy);
     if(accuracy) {
@@ -352,24 +352,24 @@
         value = Math.round(value * 100) / 100;
       }
     }
-    
+
     if(value != parseInt(slider.input.value)) {
       slider.bubbleinput.value = $ui.formatNumber(value);
       slider.input.value = value;
       $ui.fireEvent(slider.input, 'change');
     }
   };
-  
+
   // event types: https://developer.mozilla.org/en/DOM/document.createEvent#Notes
   $ui.fireEvent = function(element, type) {
     var evt = document.createEvent("HTMLEvents");
     evt.initEvent(type, true, false);
     return element.dispatchEvent(evt);
   };
-  
+
   /***************************************************************************************************
    * keyboard
-   
+
    * params {
    *   node - keyboard HTMLElement ul.keyboard
    *   input - input field
@@ -384,12 +384,13 @@
     this.onHide = $a.isFunc(params.hide) ? params.hide : null;
     this.capslockEnabled = false;
     this.downcase = true;
+    this.altkey = false;
 
     var lis = $a.all(this.element, 'li');
     for(var i=0; i < lis.length; i++) {
       lis[i].keyboard = this;
     }
-   
+
     $mt.bind(lis, 'touchstart', this.touchDown);
     $mt.bind(lis, 'touchend', this.touchUp);
 
@@ -404,7 +405,7 @@
     return String.fromCharCode(o);
   };
 
-  $ui.Keyboard.types = ['symbol', 'letter', 'back', 'tab', 'capslock', 'enter', 'space', 'hidekeyboard'];
+  $ui.Keyboard.types = ['symbol', 'letter', 'back', 'tab', 'capslock', 'enter', 'space', 'hidekeyboard', 'alt', 'previous', 'next'];
   $ui.Keyboard.convert = {amp: '&'};
 
   $ui.Keyboard.prototype = {
@@ -456,6 +457,8 @@
       $a.addClass(this, 'pressed');
       if($a.hasClass(this, 'shift')) {
        this.keyboard.shift(this);
+      } else if($a.hasClass(this, 'alt')) {
+        this.keyboard.alt(this);
       }
 
       for(var i=0; i < $ui.Keyboard.types.length; i++) {
@@ -468,12 +471,12 @@
     },
 
     touchUp: function(event) {
-     $a.removeClass(this, 'pressed');
-     if($a.hasClass(this, 'shift')) {
-       this.keyboard.shift(this);
-     }
-     var otherPressed = $a.all(this.parentNode, 'li.pressed');
-     $a.removeClass(otherPressed, 'pressed');
+      $a.removeClass(this, 'pressed');
+      if($a.hasClass(this, 'shift')) {
+        this.keyboard.shift(this);
+      }
+      var otherPressed = $a.all(this.parentNode, 'li.pressed');
+      $a.removeClass(otherPressed, 'pressed');
       $ui.fireEvent(this.keyboard.input, 'keyup');
     },
 
@@ -489,7 +492,7 @@
      if(this.input.selectionStart != this.input.selectionEnd) {
        this.input.value = this.input.value.substr(0, this.input.selectionStart) + this.input.value.substr(this.input.selectionEnd, this.input.value.length);
      }
-   
+
      for(key in $ui.Keyboard.convert) {
        sign = sign.replace('&' + key + ';', $ui.Keyboard.convert[key]);
      }
@@ -530,15 +533,46 @@
     },
 
     capslock: function(li) {
-     if(this.capslockEnabled) {
-       $a.removeClass(li, 'pressedcapslock');
-       this.capslockEnabled = false;
-       this.shift(li);
-     } else {
-       $a.addClass(li, 'pressedcapslock');
-       this.shift(li);
-       this.capslockEnabled = true;
-     }
+      if(this.capslockEnabled) {
+        $a.removeClass(li, 'pressedcapslock');
+        this.capslockEnabled = false;
+        this.shift(li);
+      } else {
+        $a.addClass(li, 'pressedcapslock');
+        this.shift(li);
+        this.capslockEnabled = true;
+      }
+    },
+
+    getInputElement: function(input, next) {
+      var index = 0;
+      for(var i=0; i < input.form.elements.length; i++) {
+        var el = this.input.form.elements[i];
+        if(el == input) {
+          index = i;
+          break;
+        }
+      }
+      while(index >= 0 && index < input.form.elements.length) {
+        index += next;
+        index = index < 0 ? 0 : index;
+        index = index >= input.form.elements.length ? input.form.elements.length - 1 : index;
+        var el = input.form.elements[index];
+        if(el.type == 'hidden' || el.disabled == true) {
+          continue;
+        }
+        return el;
+      }
+    },
+
+    previous: function(li) {
+      this.input = this.getInputElement(this.input, -1);
+      this.input.focus();
+    },
+
+    next: function(li) {
+      this.input = this.getInputElement(this.input, 1);
+      this.input.focus();
     },
 
     enter: function(li) {
@@ -552,16 +586,28 @@
     },
 
     shift: function(li) {
-     if(this.capslockEnabled) return;
-     var letters = $a.all(this.element, 'li.letter');
-     for(var i=0; i < letters.length; i++) {
-       var sign = letters[i].innerHTML.trim();
-       letters[i].innerHTML = this.downcase == true ? sign.toUpperCase() : sign.toLowerCase();
-     }
-     this.downcase = !this.downcase;
-     var symbols = $a.all(this.element, 'li.symbol span');
-     $a.toggleClass(symbols, 'on');
-     $a.toggleClass(symbols, 'off');
+      if(this.capslockEnabled) return;
+      var symbols = $a.all(this.element, 'li.symbol');
+      for(var i=0; i < symbols.length; i++) {
+        symbols[i].innerHTML = this.downcase == true ? $a.data(symbols[i], 'shift') : $a.data(symbols[i], 'symbol');
+      }
+      var letters = $a.all(this.element, 'li.letter');
+      for(var i=0; i < letters.length; i++) {
+        letters[i].innerHTML = this.downcase == true ? $a.data(letters[i], 'letter').toUpperCase() : $a.data(letters[i], 'letter');
+      }
+      this.downcase = !this.downcase;
+    },
+
+    alt: function(li) {
+      var symbols = $a.all(this.element, 'li.symbol');
+      for(var i=0; i < symbols.length; i++) {
+        symbols[i].innerHTML = this.altkey == true ? $a.data(symbols[i], 'alt') : $a.data(symbols[i], 'symbol');
+      }
+      var letters = $a.all(this.element, 'li.letter');
+      for(var i=0; i < letters.length; i++) {
+        letters[i].innerHTML = this.altkey == true ? $a.data(letters[i], 'alt') : $a.data(letters[i], 'letter');
+      }
+      this.altkey = !this.altkey;
     },
 
     space: function(li) {
@@ -572,7 +618,7 @@
      this.hide();
     }
   }
-  
+
   // set default values for select
   $ui.setDefaultOnSelects = function(element) {
     var selects = $a.all(element, 'select[default]');
@@ -585,7 +631,7 @@
       }
     }
   };
-  
+
   // enable switch tags (like radio buttons)
   $ui.activeSwitchs = function(element) {
     var switches = $a.all(element, 'switch');
@@ -602,7 +648,7 @@
       }
     }
   };
-  
+
   $ui.touchSwitchOption = function(event) {
     var options = $a.all(event.currentTarget.parentNode, 'switchoption');
     $a.removeClass(options, 'active');
@@ -613,7 +659,7 @@
       $ui.fireEvent(input, 'change');
     }
   };
-  
+
   /**
    * autocomplete for input fields
    *
@@ -633,7 +679,7 @@
     if(node.nodeName != 'INPUT') return; // just work with input fields
     var handlePress = function(evt) {
       if(this._autocomplete_value == this.value) return;
-      
+
       this._autocomplete_value = this.value;
       var input = this;
       if(this.value.length < min) {
@@ -662,24 +708,24 @@
           }
           return;
         }
-        
+
         var ul = null;
         if( ! input._ac ) {
           input._ac = document.createElement('div');
           $a.css(input._ac, { left: input.offsetLeft + 'px', top: input.offsetTop + input.clientHeight + 'px', position: 'absolute', width: input.clientWidth + 'px' });
-          
+
           $a.addClass(input._ac, 'autocompleter');
           ul = document.createElement('ul');
           input._ac.appendChild(ul);
         } else {
           ul = $a.first(input._ac, 'ul');
         }
-        
+
         var all = $a.all(ul, 'li');
         for(var i=0; i < all.length; i++) {
           ul.removeChild(all[i]);
         }
-        
+
         obj.data.forEach(function(o, i) {
           if($a.isFunc(callback)) {
             callback.call(ul, o);
@@ -690,13 +736,13 @@
             ul.appendChild(li);
           }
         });
-        
+
         $a.bind($a.all(ul, 'li'), 'mousedown', function(evt) {
           self._autocomplete_value = node.value = $a.data(this, 'value');
           $a.css(node._ac, {display: 'none'});
           return;
         });
-        
+
         if(obj.count > obj.data.length) {
           var li = document.createElement('li');
           li.innerHTML = obj.data.length + ' von ' + obj.count
@@ -712,7 +758,7 @@
         }
       }})
     };
-    
+
     var handleArrows = function(evt) {
       // key up 38
       // key down 40
@@ -748,7 +794,7 @@
         return;
       }
     };
-    
+
     $a.bind(node, 'keydown', handleArrows);
     $a.bind(node, 'keyup', handlePress);
     //$a.bind(node, 'keypress', handlePress);
