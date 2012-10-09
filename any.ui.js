@@ -420,29 +420,32 @@
           $a.animate(self.element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 1});
         }, 100);
       }
-      $ui.fireEvent(self.element, 'showkeyboard');
+      $ui.fireEvent(this.element, 'showkeyboard');
+      $ui.fireEvent(this.input, 'showkeyboard');
+
       // select text with double touch
-      $mt.bind(this.input, 'doubletouch', this.selectInput, true);
+      $a.bind(this.input, 'dblclick', this.selectInput, true);
     },
 
     hide: function() {
-     var element = this.element;
+      var element = this.element;
       if(this.onHide) {
         this.onHide(this.element)
       } else {
-       $a.animate(element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 0}, true, function(event){
-         if(this.style.opacity == 0) {
-           $a.hide(this);
-           $a.hide(this.parentNode);
-         }
-       });
+        $a.animate(element, {property: 'all', duration: '1s', timingFunction: 'ease-in-out'}, {opacity: 0}, true, function(event){
+          if(this.style.opacity == 0) {
+            $a.hide(this);
+            $a.hide(this.parentNode);
+          }
+        });
       }
-     if(this.input) {
-       this.input.blur();
-       // select text with double touch
-       $mt.unbind(this.input, 'doubletouch', this.selectInput, true);
-     }
-     $ui.fireEvent(this.element, 'hidekeyboard');
+      if(this.input) {
+        this.input.blur();
+        // select text with double touch
+        $a.unbind(this.input, 'dblclick', this.selectInput, true);
+      }
+      $ui.fireEvent(this.element, 'hidekeyboard');
+      $ui.fireEvent(this.input, 'hidekeyboard');
     },
 
     pressKey: function(event) {
@@ -458,7 +461,7 @@
       if($a.hasClass(this, 'shift')) {
        this.keyboard.shift(this);
       } else if($a.hasClass(this, 'alt')) {
-        this.keyboard.alt(this);
+        //this.keyboard.alt(this);
       }
 
       for(var i=0; i < $ui.Keyboard.types.length; i++) {
@@ -481,8 +484,8 @@
     },
 
     selectInput: function(event) {
-     this.selectionStart = 0;
-     this.selectionEnd = this.value.length;
+      this.selectionStart = 0;
+      this.selectionEnd = this.value.length;
     },
 
     insert: function(sign) {
@@ -502,7 +505,7 @@
     },
 
     symbol: function(li) {
-     this.insert($a.first(li, 'span.off').innerHTML.trim());
+     this.insert(li.innerHTML.trim());
     },
 
     letter: function(li) {
@@ -553,25 +556,31 @@
           break;
         }
       }
-      while(index >= 0 && index < input.form.elements.length) {
         index += next;
-        index = index < 0 ? 0 : index;
-        index = index >= input.form.elements.length ? input.form.elements.length - 1 : index;
+      while(index >= 0 && index < input.form.elements.length) {
         var el = input.form.elements[index];
-        if(el.type == 'hidden' || el.disabled == true) {
+        if(['hidden', 'submit', 'button', 'checkbox', 'radio'].indexOf(el.type) !== -1 || el.disabled == true || el.nodeName == 'SELECT') {
+          index += next;
           continue;
         }
         return el;
       }
+      return input;
     },
 
     previous: function(li) {
+      $a.unbind(this.input, 'dblclick', this.selectInput, true);
       this.input = this.getInputElement(this.input, -1);
+      $a.bind(this.input, 'dblclick', this.selectInput, true);
+      $ui.fireEvent(this.input, 'showkeyboard');
       this.input.focus();
     },
 
     next: function(li) {
+      $a.unbind(this.input, 'dblclick', this.selectInput, true);
       this.input = this.getInputElement(this.input, 1);
+      $a.bind(this.input, 'dblclick', this.selectInput, true);
+      $ui.fireEvent(this.input, 'showkeyboard');
       this.input.focus();
     },
 
