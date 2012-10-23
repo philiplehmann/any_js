@@ -626,7 +626,7 @@
     hidekeyboard: function(li) {
      this.hide();
     }
-  }
+  };
 
   // set default values for select
   $ui.setDefaultOnSelects = function(element) {
@@ -685,6 +685,7 @@
     var callback = params.callback;
     var min = params.min || 3;
     var limit = params.limit || 10;
+    var positionCall = params.position;
     if(node.nodeName != 'INPUT') return; // just work with input fields
     var handlePress = function(evt) {
       if(this._autocomplete_value == this.value) return;
@@ -711,7 +712,7 @@
           throw 'type of result is not an array';
         }
         // exit if response does have an empty result
-        if(obj.count == 0) {
+        if (obj.count == 0) {
           if(input._ac) {
             $a.css(input._ac, {display: 'none'});
           }
@@ -721,7 +722,9 @@
         var ul = null;
         if( ! input._ac ) {
           input._ac = document.createElement('div');
-          $a.css(input._ac, { left: input.offsetLeft + 'px', top: input.offsetTop + input.clientHeight + 'px', position: 'absolute', width: input.clientWidth + 'px' });
+          if( ! $a.isFunc(positionCall)) {
+            $a.css(input._ac, { left: input.offsetLeft + 'px', top: input.offsetTop + input.clientHeight + 'px', position: 'absolute', width: input.clientWidth + 'px' });
+          }
 
           $a.addClass(input._ac, 'autocompleter');
           ul = document.createElement('ul');
@@ -754,7 +757,7 @@
 
         if(obj.count > obj.data.length) {
           var li = document.createElement('li');
-          li.innerHTML = obj.data.length + ' von ' + obj.count
+          li.innerHTML = obj.data.length + ' von ' + obj.count;
           $a.addClass(li, 'info');
           ul.appendChild(li);
         }
@@ -765,7 +768,11 @@
         } else {
           node.parentNode.appendChild(input._ac);
         }
-      }})
+
+        if($a.isFunc(positionCall)) {
+          positionCall(input, input._ac);
+        }
+      }});
     };
 
     var handleArrows = function(evt) {
