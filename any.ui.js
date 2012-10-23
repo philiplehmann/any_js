@@ -406,7 +406,7 @@
   };
 
   $ui.Keyboard.types = ['symbol', 'letter', 'back', 'tab', 'capslock', 'enter', 'space', 'hidekeyboard', 'alt', 'previous', 'next'];
-  $ui.Keyboard.convert = {amp: '&'};
+  $ui.Keyboard.convert = {amp: '&', lt: '<', gt: '>'};
 
   $ui.Keyboard.prototype = {
     show: function() {
