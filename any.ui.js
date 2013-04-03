@@ -385,6 +385,7 @@
     this.capslockEnabled = false;
     this.downcase = true;
     this.altkey = false;
+    this.blockBlur = false;
 
     var lis = $a.all(this.element, 'li');
     for(var i=0; i < lis.length; i++) {
@@ -448,15 +449,33 @@
       $ui.fireEvent(this.input, 'hidekeyboard');
     },
 
+    setInput: function(input) {
+      var self = this;
+      this.focusBlock = true;
+      if(this.input) this.input.onblur = null;
+      this.input = input;
+      this.input.onblur = function(evt) {
+        self.focusBlock = false;
+        if(self.blockBlur === false) {
+          window.setTimeout(function() {
+            if(self.focusBlock === false) {
+              $ui.fireEvent(self.element, 'keyboardBlur');
+            }
+          }, 500);
+        }
+      };
+    },
+
     pressKey: function(event) {
-     for(var i=0; i < $ui.Keyboard.types.length; i++) {
-       if($a.hasClass(el, $ui.Keyboard.types[i])) {
-         this.keyboard[$ui.Keyboard.types[i]](this);
-       }
-     }
+      for(var i=0; i < $ui.Keyboard.types.length; i++) {
+        if($a.hasClass(el, $ui.Keyboard.types[i])) {
+          this.keyboard[$ui.Keyboard.types[i]](this);
+        }
+      }
     },
 
     touchDown: function(event) {
+      this.keyboard.blockBlur = true;
       $a.addClass(this, 'pressed');
       if($a.hasClass(this, 'shift')) {
        this.keyboard.shift(this);
@@ -481,6 +500,9 @@
       var otherPressed = $a.all(this.parentNode, 'li.pressed');
       $a.removeClass(otherPressed, 'pressed');
       $ui.fireEvent(this.keyboard.input, 'keyup');
+      if(this.keyboard.input) this.keyboard.input.focus();
+      this.keyboard.blockBlur = false;
+      this.keyboard.focusBlock = true;
     },
 
     selectInput: function(event) {
@@ -494,6 +516,7 @@
      }
      if(this.input.selectionStart != this.input.selectionEnd) {
        this.input.value = this.input.value.substr(0, this.input.selectionStart) + this.input.value.substr(this.input.selectionEnd, this.input.value.length);
+
      }
 
      for(key in $ui.Keyboard.convert) {
@@ -501,7 +524,7 @@
      }
 
      this.input.value += sign;
-      $ui.fireEvent(this.input, 'change');
+     $ui.fireEvent(this.input, 'change');
     },
 
     symbol: function(li) {
