@@ -378,6 +378,7 @@
    * }
    **************************************************************************************************/
   $ui.Keyboard = function(params) {
+    var self = this;
     this.element = params.node;
     this.input = params.input;
     this.onShow = $a.isFunc(params.show) ? params.show : null;
@@ -396,6 +397,17 @@
     $mt.bind(lis, 'touchend', this.touchUp);
 
     this.element.keyboard = this;
+
+    $mt.bind(this.element.parentNode, 'touchstart', function(evt) {
+      self.blockBlur = true;
+    });
+    $mt.bind(this.element.parentNode, 'touchend', function(evt) {
+      if(self.input) {
+        self.input.focus();
+      }
+      self.blockBlur = false;
+      self.blockFocus = true;
+    });
   };
 
   $ui.Keyboard.ord = function(c) {
@@ -451,19 +463,20 @@
 
     setInput: function(input) {
       var self = this;
-      this.focusBlock = true;
-      if(this.input) this.input.onblur = null;
+      this.blockFocus = true;
+      if(this.input) this.input.onblur = function() {};
       this.input = input;
       this.input.onblur = function(evt) {
-        self.focusBlock = false;
+        self.blockFocus = false;
         if(self.blockBlur === false) {
           window.setTimeout(function() {
-            if(self.focusBlock === false) {
+            if(self.blockFocus === false) {
               $ui.fireEvent(self.element, 'keyboardBlur');
             }
           }, 500);
         }
       };
+
     },
 
     pressKey: function(event) {
@@ -502,7 +515,7 @@
       $ui.fireEvent(this.keyboard.input, 'keyup');
       if(this.keyboard.input) this.keyboard.input.focus();
       this.keyboard.blockBlur = false;
-      this.keyboard.focusBlock = true;
+      this.keyboard.blockFocus = true;
     },
 
     selectInput: function(event) {
